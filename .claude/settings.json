@@ -1,0 +1,5 @@
+{
+ "skill_auto_load": true,
+ "max_context": "optimized",
+ "performance_mode": "high"
+}
