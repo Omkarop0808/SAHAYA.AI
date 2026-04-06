@@ -7,14 +7,12 @@ import { awardXp } from '../services/gamificationCore.js';
 
 const router = express.Router();
 
-/** GET /api/study/goals */
-router.get('/', authMiddleware, (req, res) => {
-  const goals = findAll('study_goals', (g) => g.userId === req.userId);
+router.get('/', authMiddleware, async (req, res) => {
+  const goals = await findAll('study_goals', (g) => g.userId === req.userId);
   goals.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
   res.json({ goals });
 });
 
-/** POST /api/study/goals — body: { title, deadline } */
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { title, deadline } = req.body;
@@ -43,20 +41,19 @@ Provide 2-4 weekly sprints; 3-6 tasks per sprint. resource_type must be one of q
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    const all = readDB('study_goals');
+    const all = await readDB('study_goals');
     all.push(goal);
-    writeDB('study_goals', all);
-    awardXp(req.userId, 20, 'goal_created');
+    await writeDB('study_goals', all);
+    await awardXp(req.userId, 20, 'goal_created');
     res.json({ goal });
   } catch (e) {
     res.status(500).json({ error: e.message || 'Goal create failed' });
   }
 });
 
-/** POST /api/study/goals/:id/task — body: { sprintIndex, taskId, done } */
-router.post('/:id/task', authMiddleware, (req, res) => {
+router.post('/:id/task', authMiddleware, async (req, res) => {
   const { sprintIndex, taskId, done } = req.body;
-  const all = readDB('study_goals');
+  const all = await readDB('study_goals');
   const idx = all.findIndex((g) => g.id === req.params.id && g.userId === req.userId);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   const goal = all[idx];
@@ -68,23 +65,22 @@ router.post('/:id/task', authMiddleware, (req, res) => {
   task.completedAt = done ? new Date().toISOString() : null;
   goal.updatedAt = new Date().toISOString();
 
-  if (done) awardXp(req.userId, 15, 'goal_task');
+  if (done) await awardXp(req.userId, 15, 'goal_task');
 
   const allTasks = goal.weekly_sprints.flatMap((s) => s.tasks || []);
   const allDone = allTasks.length && allTasks.every((t) => t.done);
   if (allDone) {
     goal.status = 'completed';
-    awardXp(req.userId, 50, 'goal_completed');
+    await awardXp(req.userId, 50, 'goal_completed');
   }
 
   all[idx] = goal;
-  writeDB('study_goals', all);
+  await writeDB('study_goals', all);
   res.json({ goal });
 });
 
-/** POST /api/study/goals/:id/adjust — roll incomplete tasks forward */
 router.post('/:id/adjust', authMiddleware, async (req, res) => {
-  const all = readDB('study_goals');
+  const all = await readDB('study_goals');
   const idx = all.findIndex((g) => g.id === req.params.id && g.userId === req.userId);
   if (idx === -1) return res.status(404).json({ error: 'Not found' });
   const goal = all[idx];
@@ -111,7 +107,7 @@ router.post('/:id/adjust', authMiddleware, async (req, res) => {
   }
   goal.updatedAt = new Date().toISOString();
   all[idx] = goal;
-  writeDB('study_goals', all);
+  await writeDB('study_goals', all);
   res.json({ goal });
 });
 

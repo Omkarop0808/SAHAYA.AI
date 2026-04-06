@@ -7,14 +7,6 @@ import { awardXp } from '../services/gamificationCore.js';
 
 const router = express.Router();
 
-function getSessions() {
-  return readDB('exam_adaptive_sessions');
-}
-
-function saveSessions(list) {
-  writeDB('exam_adaptive_sessions', list);
-}
-
 function normalizeMcq(q) {
   const options = Array.isArray(q.options) && q.options.length >= 2 ? q.options : ['A', 'B', 'C', 'D'];
   const answer = q.answer || options[0];
@@ -87,9 +79,9 @@ router.post('/start', authMiddleware, async (req, res) => {
       status: 'active',
       createdAt: new Date().toISOString(),
     };
-    const all = getSessions();
+    const all = await readDB('exam_adaptive_sessions');
     all.push(session);
-    saveSessions(all);
+    await writeDB('exam_adaptive_sessions', all);
     res.json({ sessionId: session.id, question: q });
   } catch (e) {
     res.status(500).json({ error: e.message || 'Start failed' });
@@ -101,7 +93,7 @@ router.post('/answer', authMiddleware, async (req, res) => {
   try {
     const { sessionId, questionId, selectedOption } = req.body;
     if (!sessionId || !questionId) return res.status(400).json({ error: 'sessionId and questionId required' });
-    const all = getSessions();
+    const all = await readDB('exam_adaptive_sessions');
     const idx = all.findIndex((s) => s.id === sessionId && s.userId === req.userId);
     if (idx === -1) return res.status(404).json({ error: 'Session not found' });
     const session = all[idx];
@@ -124,7 +116,7 @@ router.post('/answer', authMiddleware, async (req, res) => {
     }
     session.questions.push(nextQ);
     all[idx] = session;
-    saveSessions(all);
+    await writeDB('exam_adaptive_sessions', all);
 
     res.json({ correct, weakTopics: weak, nextQuestion: nextQ });
   } catch (e) {
@@ -136,7 +128,7 @@ router.post('/answer', authMiddleware, async (req, res) => {
 router.post('/finish', authMiddleware, async (req, res) => {
   try {
     const { sessionId } = req.body;
-    const all = getSessions();
+    const all = await readDB('exam_adaptive_sessions');
     const idx = all.findIndex((s) => s.id === sessionId && s.userId === req.userId);
     if (idx === -1) return res.status(404).json({ error: 'Session not found' });
     const session = all[idx];
@@ -159,12 +151,12 @@ severity 1-5. revision_plan exactly 3 days.`;
     session.finishedAt = new Date().toISOString();
     session.result = plan;
     all[idx] = session;
-    saveSessions(all);
+    await writeDB('exam_adaptive_sessions', all);
 
     const correctN = session.answers.filter((a) => a.correct).length;
     const total = session.answers.length;
     const pct = total ? Math.round((correctN / total) * 100) : 0;
-    awardXp(req.userId, Math.max(15, pct), 'adaptive_exam');
+    await awardXp(req.userId, Math.max(15, pct), 'adaptive_exam');
 
     res.json({ weakness_map: plan.weakness_map || [], revision_plan: plan.revision_plan || [], score: { correct: correctN, total } });
   } catch (e) {
@@ -173,8 +165,8 @@ severity 1-5. revision_plan exactly 3 days.`;
 });
 
 /** GET /api/study/exam/sessions — recent */
-router.get('/sessions', authMiddleware, (req, res) => {
-  const list = findAll('exam_adaptive_sessions', (s) => s.userId === req.userId);
+router.get('/sessions', authMiddleware, async (req, res) => {
+  const list = await findAll('exam_adaptive_sessions', (s) => s.userId === req.userId);
   list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   res.json({ sessions: list.slice(0, 20) });
 });

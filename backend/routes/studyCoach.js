@@ -6,10 +6,9 @@ import { callGemini } from '../services/gemini.js';
 const router = express.Router();
 const IDLE_MS = 4 * 60 * 1000;
 
-/** POST /api/study/coach/ping — client route / activity */
-router.post('/ping', authMiddleware, (req, res) => {
+router.post('/ping', authMiddleware, async (req, res) => {
   const path = (req.body.path || '').slice(0, 200);
-  const all = readDB('study_coach_activity');
+  const all = await readDB('study_coach_activity');
   const idx = all.findIndex((r) => r.userId === req.userId);
   const row = {
     userId: req.userId,
@@ -19,14 +18,13 @@ router.post('/ping', authMiddleware, (req, res) => {
   };
   if (idx === -1) all.push(row);
   else all[idx] = { ...all[idx], ...row };
-  writeDB('study_coach_activity', all);
+  await writeDB('study_coach_activity', all);
   res.json({ ok: true });
 });
 
-/** GET /api/study/coach/nudge?force=1 */
 router.get('/nudge', authMiddleware, async (req, res) => {
   try {
-    const all = readDB('study_coach_activity');
+    const all = await readDB('study_coach_activity');
     const row = all.find((r) => r.userId === req.userId);
     const now = Date.now();
     const force = req.query.force === '1';
@@ -34,7 +32,7 @@ router.get('/nudge', authMiddleware, async (req, res) => {
       return res.json({ nudge: null, idleMs: row ? now - row.lastActiveAt : 0 });
     }
 
-    const attempts = findAll('quiz_attempts', (r) => r.userId === req.userId).slice(0, 3);
+    const attempts = (await findAll('quiz_attempts', (r) => r.userId === req.userId)).slice(0, 3);
     const weakHint = attempts.map((a) => `${a.subject}:${a.score}%`).join(', ') || 'general study';
 
     const system = 'You are a supportive study coach. One short message (max 2 sentences). No guilt-tripping.';

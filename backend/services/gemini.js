@@ -1,12 +1,13 @@
 /**
- * Central Gemini (Google AI) calls — Study World only; no Claude.
+ * AI orchestration: Groq (fast), Gemini, Hugging Face fallback.
+ * Optional Claude for deep reasoning when ANTHROPIC_API_KEY is set.
  */
 function getGeminiKey() {
   return process.env.GEMINI_API_KEY || '';
 }
 
 function getGeminiModel() {
-  return process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+  return process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 }
 
 function getGroqApiKey() {
@@ -14,7 +15,15 @@ function getGroqApiKey() {
 }
 
 function getGroqModel() {
-  return process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+  return process.env.GROQ_MODEL || 'llama-3.1-70b-versatile';
+}
+
+function getClaudeKey() {
+  return process.env.ANTHROPIC_API_KEY || '';
+}
+
+function getClaudeModel() {
+  return process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514';
 }
 
 function getHfApiKey() {
@@ -97,6 +106,105 @@ export async function callGemini(systemPrompt, userPrompt, options = {}) {
   } catch (err) {
     throw new Error(lastProviderError || err.message);
   }
+}
+
+/**
+ * Deep reasoning: Claude when configured, else same stack as callGemini.
+ */
+export async function callDeepReason(systemPrompt, userPrompt, options = {}) {
+  const maxTokens = options.maxTokens ?? 4096;
+  const key = getClaudeKey();
+  if (key) {
+    try {
+      const userContent =
+        options.jsonMode
+          ? `${userPrompt}\n\nRespond with valid JSON only. No markdown fences.`
+          : userPrompt;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: getClaudeModel(),
+          max_tokens: maxTokens,
+          system: options.jsonMode ? `${systemPrompt}\nOutput JSON only.` : systemPrompt,
+          messages: [{ role: 'user', content: userContent }],
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data?.content?.find((b) => b.type === 'text')?.text;
+        if (text) return text;
+      } else {
+        const body = await readErrorBody(res);
+        console.warn('Claude error, falling back:', body);
+      }
+    } catch (e) {
+      console.warn('Claude request failed, falling back:', e?.message);
+    }
+  }
+  return callGemini(systemPrompt, userPrompt, { maxTokens, jsonMode: options.jsonMode });
+}
+
+export async function callDeepReasonJSON(systemPrompt, userPrompt, maxTokens = 4096) {
+  const raw = await callDeepReason(systemPrompt, userPrompt, { maxTokens, jsonMode: true });
+  const parsed = safeParseJSON(raw);
+  if (parsed) return parsed;
+  const repair = await callGemini(
+    'You output only valid JSON. No markdown.',
+    `Fix this to valid JSON only:\n${raw}`,
+    { maxTokens: 2048, jsonMode: true },
+  );
+  const again = safeParseJSON(repair);
+  if (again) return again;
+  throw new Error('AI returned non-JSON output.');
+}
+
+/** Hugging Face sentence embedding (MiniLM). Returns number[] or null. */
+export async function embedTextMiniLM(text) {
+  const HF_API_KEY = getHfApiKey();
+  if (!HF_API_KEY || !text?.trim()) return null;
+  const inputs = text.trim().slice(0, 8000);
+  const url =
+    'https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction';
+  const fallback = `https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2`;
+  for (const endpoint of [url, fallback]) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${HF_API_KEY}`,
+        },
+        body: JSON.stringify({ inputs }),
+      });
+      if (!response.ok) continue;
+      const data = await response.json();
+      let vec = Array.isArray(data) ? data.flat() : data;
+      if (Array.isArray(vec?.[0])) vec = vec[0];
+      if (Array.isArray(vec) && vec.every((n) => typeof n === 'number')) return vec;
+    } catch {
+      /* try next */
+    }
+  }
+  return null;
+}
+
+export function cosineSimilarity(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return 0;
+  let dot = 0;
+  let na = 0;
+  let nb = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    na += a[i] * a[i];
+    nb += b[i] * b[i];
+  }
+  const d = Math.sqrt(na) * Math.sqrt(nb);
+  return d === 0 ? 0 : dot / d;
 }
 
 export async function callGeminiJSON(systemPrompt, userPrompt, maxTokens = 4096) {

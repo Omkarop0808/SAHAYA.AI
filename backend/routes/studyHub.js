@@ -7,7 +7,6 @@ import { scrapeUrlToText } from '../services/scrapeUrl.js';
 import { buildYoutubeStudyContext } from '../services/youtube.js';
 import { extractPdfText } from '../services/pdfText.js';
 import { generateSmartUploadBundle } from '../services/smartBundle.js';
-import { saveDocumentGraph } from '../services/graphMerge.js';
 import { awardXp } from '../services/gamificationCore.js';
 
 const router = express.Router();
@@ -80,9 +79,8 @@ router.post('/process', authMiddleware, upload.single('file'), async (req, res) 
       outputs: bundle,
       createdAt: new Date().toISOString(),
     };
-    insertOne('study_documents', doc);
-    saveDocumentGraph(req.userId, doc.id, bundle.mind_map);
-    awardXp(req.userId, 25, 'smart_upload');
+    await insertOne('study_documents', doc);
+    await awardXp(req.userId, 25, 'smart_upload');
 
     res.json({ document: doc });
   } catch (e) {
@@ -92,15 +90,16 @@ router.post('/process', authMiddleware, upload.single('file'), async (req, res) 
 });
 
 /** GET /api/study/hub/documents */
-router.get('/documents', authMiddleware, (req, res) => {
-  const docs = findAll('study_documents', (d) => d.userId === req.userId);
+router.get('/documents', authMiddleware, async (req, res) => {
+  const docs = await findAll('study_documents', (d) => d.userId === req.userId);
   docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   res.json({ documents: docs });
 });
 
 /** GET /api/study/hub/documents/:id */
-router.get('/documents/:id', authMiddleware, (req, res) => {
-  const doc = findAll('study_documents', (d) => d.userId === req.userId && d.id === req.params.id)[0];
+router.get('/documents/:id', authMiddleware, async (req, res) => {
+  const list = await findAll('study_documents', (d) => d.userId === req.userId && d.id === req.params.id);
+  const doc = list[0];
   if (!doc) return res.status(404).json({ error: 'Not found' });
   res.json({ document: doc });
 });

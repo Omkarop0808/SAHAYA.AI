@@ -4,24 +4,23 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/timetable — get saved timetable
-router.get('/', authMiddleware, (req, res) => {
-  const record = findAll('timetable', r => r.userId === req.userId)[0] || null;
-  res.json({ timetable: record || null });
+router.get('/', authMiddleware, async (req, res) => {
+  const records = await findAll('timetable', (r) => r.userId === req.userId);
+  const record = records[0] || null;
+  res.json({ timetable: record });
 });
 
-// POST /api/timetable — save timetable
-router.post('/', authMiddleware, (req, res) => {
-  const { schedule, hoursPerDay } = req.body;
-  if (!Array.isArray(schedule)) return res.status(400).json({ error: 'schedule must be an array.' });
+router.post('/', authMiddleware, async (req, res) => {
+  const { hoursPerDay, schedule } = req.body;
+  if (hoursPerDay == null) return res.status(400).json({ error: 'hoursPerDay is required.' });
 
   const doc = {
     userId: req.userId,
-    schedule,
-    hoursPerDay: hoursPerDay || 3,
+    hoursPerDay,
+    schedule: Array.isArray(schedule) ? schedule : [],
     updatedAt: new Date().toISOString(),
   };
-  upsertOne('timetable', r => r.userId === req.userId, doc);
+  await upsertOne('timetable', (r) => r.userId === req.userId, doc);
   res.json({ success: true, timetable: doc });
 });
 

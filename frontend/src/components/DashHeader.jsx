@@ -9,11 +9,18 @@ export default function DashHeader({ title }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [xp, setXp] = useState(null);
+  const [readiness, setReadiness] = useState(null);
 
   useEffect(() => {
     api.get('/study/xp')
       .then(({ data }) => setXp(data))
       .catch(() => setXp(null));
+  }, []);
+
+  useEffect(() => {
+    api.get('/study/companion/readiness')
+      .then(({ data }) => setReadiness(data))
+      .catch(() => setReadiness(null));
   }, []);
 
   const handleLogout = () => {
@@ -31,6 +38,11 @@ export default function DashHeader({ title }) {
             <span>Lv.{xp.level}</span>
             <span className="text-white/80 font-semibold">{xp.xp} XP</span>
             <span className="text-white/50">🔥{xp.streak || 0}</span>
+            {readiness?.overall != null && (
+              <span className="text-white/90 font-semibold border-l border-white/20 pl-2 ml-1">
+                Prep {readiness.overall}%
+              </span>
+            )}
           </div>
         )}
       </div>

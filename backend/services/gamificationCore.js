@@ -3,8 +3,8 @@ import { readDB, writeDB } from '../middleware/db.js';
 const XP_PER_QUIZ_POINT = 2;
 const XP_LEVEL_STEP = 500;
 
-export function getOrCreateGamification(userId) {
-  const all = readDB('gamification');
+export async function getOrCreateGamification(userId) {
+  const all = await readDB('gamification');
   let row = all.find((r) => r.userId === userId);
   if (!row) {
     row = {
@@ -16,7 +16,7 @@ export function getOrCreateGamification(userId) {
       updatedAt: new Date().toISOString(),
     };
     all.push(row);
-    writeDB('gamification', all);
+    await writeDB('gamification', all);
   }
   return row;
 }
@@ -41,12 +41,12 @@ function updateStreak(row) {
   row.lastStreakDate = d;
 }
 
-export function awardXp(userId, amount, _reason) {
+export async function awardXp(userId, amount, _reason) {
   if (!amount || amount < 0) return getOrCreateGamification(userId);
-  const all = readDB('gamification');
+  const all = await readDB('gamification');
   let idx = all.findIndex((r) => r.userId === userId);
   if (idx === -1) {
-    getOrCreateGamification(userId);
+    await getOrCreateGamification(userId);
     return awardXp(userId, amount, _reason);
   }
   const row = { ...all[idx] };
@@ -55,7 +55,7 @@ export function awardXp(userId, amount, _reason) {
   row.level = Math.max(1, Math.floor(row.xp / XP_LEVEL_STEP) + 1);
   row.updatedAt = new Date().toISOString();
   all[idx] = row;
-  writeDB('gamification', all);
+  await writeDB('gamification', all);
   return row;
 }
 
@@ -64,9 +64,9 @@ export function xpFromQuizScore(scorePercent, totalQuestions) {
   return Math.max(5, Math.min(200, base + 10));
 }
 
-export function listLeaderboard(limit = 20) {
-  const users = readDB('users');
-  const gm = readDB('gamification');
+export async function listLeaderboard(limit = 20) {
+  const users = await readDB('users');
+  const gm = await readDB('gamification');
   const merged = gm.map((g) => {
     const u = users.find((x) => x.id === g.userId);
     return {

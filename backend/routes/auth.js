@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
     if (!name || !email || !password)
       return res.status(400).json({ error: 'Name, email and password are required.' });
 
-    const existing = findOne('users', u => u.email.toLowerCase() === email.toLowerCase());
+    const existing = await findOne('users', u => u.email.toLowerCase() === email.toLowerCase());
     if (existing)
       return res.status(409).json({ error: 'An account with this email already exists.' });
 
@@ -27,7 +27,7 @@ router.post('/register', async (req, res) => {
       createdAt: new Date().toISOString(),
       hasCompletedDataCollection: false,
     };
-    insertOne('users', user);
+    await insertOne('users', user);
 
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.status(201).json({
@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ error: 'Email and password are required.' });
 
-    const user = findOne('users', u => u.email.toLowerCase() === email.toLowerCase());
+    const user = await findOne('users', u => u.email.toLowerCase() === email.toLowerCase());
     if (!user)
       return res.status(401).json({ error: 'Invalid email or password.' });
 
@@ -70,8 +70,8 @@ router.post('/login', async (req, res) => {
 });
 
 // GET /api/auth/me — verify token & return user
-router.get('/me', authMiddleware, (req, res) => {
-  const user = findOne('users', u => u.id === req.userId);
+router.get('/me', authMiddleware, async (req, res) => {
+  const user = await findOne('users', u => u.id === req.userId);
   if (!user) return res.status(404).json({ error: 'User not found.' });
   res.json({
     user: {

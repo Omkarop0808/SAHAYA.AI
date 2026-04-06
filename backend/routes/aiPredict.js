@@ -70,17 +70,19 @@ router.post('/', authMiddleware, async (req, res) => {
     const body = req.body;
 
     // ── 1. study_hours from timetable setting or body ──────────────────
-    const timetableRecord = findAll('timetable', r => r.userId === userId)[0];
+    const timetableRecords = await findAll('timetable', (r) => r.userId === userId);
+    const timetableRecord = timetableRecords[0];
     const studyHours = body.study_hours ?? timetableRecord?.hoursPerDay ?? 3;
 
     // ── 2. focus_level + breaks from today's session ───────────────────
     const today = new Date().toISOString().split('T')[0];
-    const sessionRecord = findAll('sessions', r => r.userId === userId && r.date === today)[0];
+    const sessionRecords = await findAll('sessions', (r) => r.userId === userId && r.date === today);
+    const sessionRecord = sessionRecords[0];
     const focusLevel = body.focus_level ?? sessionRecord?.focusLevel ?? 5;
     const breaks     = body.breaks     ?? sessionRecord?.breaks     ?? 1;
 
     // ── 3. quiz data — latest attempt per subject ──────────────────────
-    const quizAttempts = findAll('quiz_attempts', r => r.userId === userId);
+    const quizAttempts = await findAll('quiz_attempts', (r) => r.userId === userId);
     const bySubject = {};
     for (const a of quizAttempts) {
       if (!bySubject[a.subject] || new Date(a.createdAt) > new Date(bySubject[a.subject].createdAt)) {
@@ -100,7 +102,8 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     // ── 5. Build subjects array ────────────────────────────────────────
-    const eduRecord   = findAll('edu_data', r => r.userId === userId)[0];
+    const eduRecords = await findAll('edu_data', (r) => r.userId === userId);
+    const eduRecord = eduRecords[0];
     const eduSubjects = eduRecord?.subjects || [];
 
     let subjects;

@@ -4,21 +4,19 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/growth — get all growth data for user
-router.get('/', authMiddleware, (req, res) => {
-  const records = findAll('growth', r => r.userId === req.userId);
+router.get('/', authMiddleware, async (req, res) => {
+  const records = await findAll('growth', (r) => r.userId === req.userId);
   res.json({ growth: records });
 });
 
-// GET /api/growth/:subject — get growth data for specific subject
-router.get('/:subject', authMiddleware, (req, res) => {
+router.get('/:subject', authMiddleware, async (req, res) => {
   const subject = decodeURIComponent(req.params.subject);
-  const record = findAll('growth', r => r.userId === req.userId && r.subject === subject)[0] || null;
+  const records = await findAll('growth', (r) => r.userId === req.userId && r.subject === subject);
+  const record = records[0] || null;
   res.json({ growth: record || null });
 });
 
-// POST /api/growth — save growth/scores for a subject
-router.post('/', authMiddleware, (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   const { subject, scores, analysis } = req.body;
   if (!subject) return res.status(400).json({ error: 'subject is required.' });
 
@@ -29,7 +27,7 @@ router.post('/', authMiddleware, (req, res) => {
     analysis: analysis || null,
     updatedAt: new Date().toISOString(),
   };
-  upsertOne('growth', r => r.userId === req.userId && r.subject === subject, doc);
+  await upsertOne('growth', (r) => r.userId === req.userId && r.subject === subject, doc);
   res.json({ success: true, growth: doc });
 });
 

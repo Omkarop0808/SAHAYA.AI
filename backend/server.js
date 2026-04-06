@@ -16,7 +16,7 @@ import quizRoutes from './routes/quiz.js';
 import sessionRoutes from './routes/session.js';
 import aiPredictRoutes from './routes/aiPredict.js';
 import studyHubRoutes from './routes/studyHub.js';
-import studyGraphRoutes from './routes/studyGraph.js';
+import studyCompanionRoutes from './routes/studyCompanion.js';
 import studyCoachRoutes from './routes/studyCoach.js';
 import studyExamRoutes from './routes/studyExam.js';
 import studyGoalsRoutes from './routes/studyGoals.js';
@@ -46,7 +46,7 @@ app.use('/api/quiz', quizRoutes);
 app.use('/api/session', sessionRoutes);
 app.use('/api/ai-predict', aiPredictRoutes);
 app.use('/api/study/hub', studyHubRoutes);
-app.use('/api/study/graph', studyGraphRoutes);
+app.use('/api/study/companion', studyCompanionRoutes);
 app.use('/api/study/coach', studyCoachRoutes);
 app.use('/api/study/exam', studyExamRoutes);
 app.use('/api/study/goals', studyGoalsRoutes);
@@ -71,6 +71,9 @@ const server = app.listen(PORT, () => {
   console.log(`⚡ Groq: ${process.env.GROQ_API_KEY ? '✅ Set' : '❌ Missing (optional)'}`);
   console.log(`🔑 Gemini: ${process.env.GEMINI_API_KEY ? '✅ Set' : '❌ Missing (optional)'}`);
   console.log(`🤗 Hugging Face: ${process.env.HF_API_KEY ? '✅ Set' : '❌ Missing (optional)'}`);
+  console.log(`🧠 Claude (optional): ${process.env.ANTHROPIC_API_KEY ? '✅ Set' : '❌ Missing'}`);
+  const supa = process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_KEY);
+  console.log(`🗄️ Supabase: ${supa ? '✅ Enabled (app_data_rows)' : '❌ Not set — using backend/data/*.json'}`);
   console.log(`📧 Mail: ${process.env.MAIL_USER ? '✅ Set' : '❌ Missing — add to .env'}\n`);
 });
 
