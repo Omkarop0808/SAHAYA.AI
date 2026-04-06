@@ -4,7 +4,7 @@ import { User, LogOut, Edit, ChevronDown, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 
-export default function DashHeader({ title }) {
+export default function DashHeader({ title, children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -45,6 +45,7 @@ export default function DashHeader({ title }) {
             )}
           </div>
         )}
+        {children}
       </div>
 
       <div
