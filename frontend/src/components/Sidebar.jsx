@@ -1,35 +1,16 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import {
-  Home,
-  BookOpen,
-  Brain,
-  Calendar,
-  CalendarDays,
-  Clock,
-  TrendingUp,
-  User,
-  LogOut,
-  Upload,
-  Target,
-  Trophy,
-  ListChecks,
-  Zap,
-  MessageCircle,
-  FlaskConical,
-} from 'lucide-react';
+import { Home, BookOpen, Brain, Calendar, Clock, TrendingUp, User, LogOut, Upload, Share2, Target, Trophy, ListChecks, Mic2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStudyCoachPing } from '../hooks/useStudyCoachPing';
 
 const navItems = [
   { to: '/dashboard',   icon: Home,       label: 'Dashboard', end: true },
-  { to: '/study/upload', icon: Upload,     label: 'Study Studio' },
-  { to: '/study/plan', icon: CalendarDays, label: 'Daily Plan' },
-  { to: '/study/adaptive', icon: Zap, label: 'Adaptive Quiz' },
-  { to: '/study/explain', icon: MessageCircle, label: 'Explain & Notes' },
-  { to: '/study/practice', icon: FlaskConical, label: 'Practice Lab' },
+  { to: '/study/upload', icon: Upload,     label: 'Smart Upload' },
+  { to: '/study/graph', icon: Share2,     label: 'Knowledge Graph' },
   { to: '/study/exam',  icon: ListChecks,   label: 'Adaptive Exam' },
   { to: '/study/goals', icon: Target,       label: 'Goals & Sprints' },
   { to: '/study/arena', icon: Trophy,       label: 'Arena' },
+  { to: '/interview-lab', icon: Mic2,       label: 'Interview Lab', badge: 'NEW' },
   { to: '/materials',   icon: BookOpen,   label: 'Study Materials' },
   { to: '/quiz',        icon: Brain,      label: 'Quiz', badge: 'AI' },
   { to: '/timetable',   icon: Calendar,   label: 'Timetable' },
