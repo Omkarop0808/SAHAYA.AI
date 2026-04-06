@@ -15,7 +15,10 @@ import SubjectPage from './pages/SubjectPage';
 import Timetable from './pages/Timetable';
 import Profile from './pages/Profile';
 import SmartUploadHub from './pages/SmartUploadHub';
-import KnowledgeGraphPage from './pages/KnowledgeGraphPage';
+import DailyStudyPlanPage from './pages/DailyStudyPlanPage';
+import ConceptExplainerPage from './pages/ConceptExplainerPage';
+import AdaptiveStudyQuizPage from './pages/AdaptiveStudyQuizPage';
+import PracticeEnginePage from './pages/PracticeEnginePage';
 import ExamSimulator from './pages/ExamSimulator';
 import GoalsSprints from './pages/GoalsSprints';
 import CompetitiveArena from './pages/CompetitiveArena';
@@ -65,7 +68,10 @@ export default function App() {
           <Route path="/timetable" element={<RequireEdu><Timetable /></RequireEdu>} />
           <Route path="/profile" element={<RequireEdu><Profile /></RequireEdu>} />
           <Route path="/study/upload" element={<RequireEdu><SmartUploadHub /></RequireEdu>} />
-          <Route path="/study/graph" element={<RequireEdu><KnowledgeGraphPage /></RequireEdu>} />
+          <Route path="/study/plan" element={<RequireEdu><DailyStudyPlanPage /></RequireEdu>} />
+          <Route path="/study/explain" element={<RequireEdu><ConceptExplainerPage /></RequireEdu>} />
+          <Route path="/study/adaptive" element={<RequireEdu><AdaptiveStudyQuizPage /></RequireEdu>} />
+          <Route path="/study/practice" element={<RequireEdu><PracticeEnginePage /></RequireEdu>} />
           <Route path="/study/exam" element={<RequireEdu><ExamSimulator /></RequireEdu>} />
           <Route path="/study/goals" element={<RequireEdu><GoalsSprints /></RequireEdu>} />
           <Route path="/study/arena" element={<RequireEdu><CompetitiveArena /></RequireEdu>} />
