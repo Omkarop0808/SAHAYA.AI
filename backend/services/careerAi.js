@@ -68,6 +68,13 @@ export async function callGroqChat(systemPrompt, userPrompt, options = {}) {
   return data?.choices?.[0]?.message?.content || '';
 }
 
+export async function callGroqChatJSON(systemPrompt, userPrompt, maxTokens = 900) {
+  const raw = await callGroqChat(systemPrompt, userPrompt, { maxTokens, jsonMode: true });
+  const parsed = safeParseJSON(raw);
+  if (!parsed) throw new Error('Groq returned non-JSON output');
+  return parsed;
+}
+
 function safeParseJSON(raw) {
   if (!raw || typeof raw !== 'string') return null;
   const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim();

@@ -1,8 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+// Ensure .env is loaded from the backend folder even when server
+// is started via "node backend/server.js" from the monorepo root.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 import authRoutes from './routes/auth.js';
 import profileRoutes from './routes/profile.js';
@@ -74,6 +79,9 @@ const server = app.listen(PORT, () => {
   console.log(`🔑 Gemini: ${process.env.GEMINI_API_KEY ? '✅ Set' : '❌ Missing (optional)'}`);
   console.log(`🤗 Hugging Face: ${process.env.HF_API_KEY ? '✅ Set' : '❌ Missing (optional)'}`);
   console.log(`🧠 Claude (optional): ${process.env.ANTHROPIC_API_KEY ? '✅ Set' : '❌ Missing'}`);
+  console.log(`🌐 Tavily: ${process.env.TAVILY_API_KEY ? '✅ Set' : '❌ Missing (optional)'}`);
+  console.log(`🔊 ElevenLabs: ${process.env.ELEVENLABS_API_KEY ? '✅ Set' : '❌ Missing (optional)'}`);
+  console.log(`📺 YouTube: ${process.env.YOUTUBE_API_KEY ? '✅ Set' : '❌ Missing (optional)'}`);
   const supa = process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_KEY);
   console.log(`🗄️ Supabase: ${supa ? '✅ Enabled (app_data_rows)' : '❌ Not set — using backend/data/*.json'}`);
   console.log(`📧 Mail: ${process.env.MAIL_USER ? '✅ Set' : '❌ Missing — add to .env'}\n`);
