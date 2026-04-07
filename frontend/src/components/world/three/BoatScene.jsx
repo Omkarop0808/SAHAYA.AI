@@ -10,7 +10,7 @@ function canUseWebGL() {
   }
 }
 
-export default function BoatScene({ accent, accent2, enabled, visible }) {
+export default function BoatScene({ accent, accent2, enabled, visible, variant = 'vortex' }) {
   const containerRef = useRef(null);
   const rafRef = useRef(null);
   const rendererRef = useRef(null);
@@ -18,6 +18,7 @@ export default function BoatScene({ accent, accent2, enabled, visible }) {
   const cameraRef = useRef(null);
   const oceanRef = useRef(null);
   const t0Ref = useRef(0);
+  const particlesMetaRef = useRef(null);
 
   const [webglOk] = useState(() => canUseWebGL());
 
@@ -112,17 +113,46 @@ export default function BoatScene({ accent, accent2, enabled, visible }) {
     ring.rotation.x = Math.PI / 2;
     scene.add(ring);
 
-    // Particles (cheap points)
+    // Particles (high‑intensity warp field — >=3000 points)
     const pts = new THREE.BufferGeometry();
-    const count = 140;
+    const count = 3200;
     const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    const meta = new Float32Array(count * 4); // r, theta, z, seed
     for (let i = 0; i < count; i++) {
-      pos[i * 3 + 0] = (Math.random() - 0.5) * 5;
-      pos[i * 3 + 1] = Math.random() * 1.8;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 5 - 0.5;
+      const seed = Math.random();
+      const r = 0.2 + seed * 2.9;
+      const theta = Math.random() * Math.PI * 2;
+      const z = (Math.random() - 0.5) * 5 - 0.5;
+      meta[i * 4 + 0] = r;
+      meta[i * 4 + 1] = theta;
+      meta[i * 4 + 2] = z;
+      meta[i * 4 + 3] = seed;
+
+      pos[i * 3 + 0] = Math.cos(theta) * r;
+      pos[i * 3 + 1] = 0.25 + Math.sin(seed * Math.PI) * 1.6;
+      pos[i * 3 + 2] = z;
+
+      // Color blend: vortex = neon purple/blue; bloom = warm gold + soft green.
+      const c1 = variant === 'bloom' ? new THREE.Color('#FBBF24') : palette.glow;
+      const c2 = variant === 'bloom' ? new THREE.Color('#34D399') : palette.glow2;
+      const mix = seed;
+      const c = c1.clone().lerp(c2, mix);
+      col[i * 3 + 0] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
     }
     pts.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const pMat = new THREE.PointsMaterial({ color: palette.glow2, size: 0.02, transparent: true, opacity: 0.65 });
+    pts.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    particlesMetaRef.current = meta;
+    const pMat = new THREE.PointsMaterial({
+      vertexColors: true,
+      size: 0.045,
+      transparent: true,
+      opacity: 0.98,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
     const particles = new THREE.Points(pts, pMat);
     scene.add(particles);
 
@@ -163,8 +193,40 @@ export default function BoatScene({ accent, accent2, enabled, visible }) {
       ring.rotation.z += dt * 0.6;
       ring.scale.setScalar(1 + Math.sin(time * 3.0) * 0.03);
 
-      // Particles swirl
-      particles.rotation.y += dt * 0.1;
+      // Particles: distinct transition styles
+      const p = particles.geometry.attributes.position;
+      const metaArr = particlesMetaRef.current;
+      const tt = t / 1000;
+      const local = (tt % 0.9); // matches overlay lifecycle (approx)
+      const phase01 = Math.max(0, Math.min(1, local / 0.55));
+
+      for (let i = 0; i < p.count; i++) {
+        const r0 = metaArr[i * 4 + 0];
+        const th0 = metaArr[i * 4 + 1];
+        const z0 = metaArr[i * 4 + 2];
+        const seed = metaArr[i * 4 + 3];
+
+        if (variant === 'vortex') {
+          // Spiral inward then explode outward.
+          const inward = Math.max(0, Math.min(1, (0.55 - local) / 0.35));
+          const explode = Math.max(0, Math.min(1, (local - 0.35) / 0.2));
+          const r = r0 * (0.25 + inward * 0.75) + explode * (2.8 + seed * 1.8);
+          const th = th0 + tt * (2.2 + seed * 3.0);
+          p.setX(i, Math.cos(th) * r);
+          p.setY(i, 0.2 + Math.sin(th * 1.2 + seed * 6) * 0.45);
+          p.setZ(i, z0 + Math.sin(tt * 1.8 + seed * 10) * 0.6);
+        } else {
+          // Bloom: warm pulse outward with soft green growth.
+          const pulse = 0.55 + 0.45 * Math.sin(tt * 3.2);
+          const growth = 0.4 + 1.9 * phase01;
+          const r = r0 * growth * pulse;
+          const th = th0 + tt * (0.6 + seed * 1.2);
+          p.setX(i, Math.cos(th) * r);
+          p.setY(i, 0.25 + (seed * 1.4) * (0.6 + 0.4 * phase01));
+          p.setZ(i, z0 + Math.cos(th * 1.1 + seed * 3) * 0.8);
+        }
+      }
+      p.needsUpdate = true;
 
       renderer.render(scene, camera);
       rafRef.current = requestAnimationFrame(tick);
