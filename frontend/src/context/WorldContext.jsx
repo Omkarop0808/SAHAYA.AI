@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 const WorldContext = createContext(null);
 
@@ -34,7 +34,9 @@ export function WorldProvider({ children }) {
     startedAt: null,
   }));
   const switchRef = useRef(switchState);
-  switchRef.current = switchState;
+  useEffect(() => {
+    switchRef.current = switchState;
+  }, [switchState]);
 
   const recordPath = useCallback((world, path) => {
     if (!path) return;
