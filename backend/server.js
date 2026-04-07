@@ -22,6 +22,7 @@ import studyExamRoutes from './routes/studyExam.js';
 import studyGoalsRoutes from './routes/studyGoals.js';
 import studyArenaRoutes from './routes/studyArena.js';
 import studyGamificationRoutes from './routes/studyGamification.js';
+import careerRoutes from './routes/career.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -52,6 +53,7 @@ app.use('/api/study/exam', studyExamRoutes);
 app.use('/api/study/goals', studyGoalsRoutes);
 app.use('/api/study/arena', studyArenaRoutes);
 app.use('/api/study', studyGamificationRoutes);
+app.use('/api/career', careerRoutes);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

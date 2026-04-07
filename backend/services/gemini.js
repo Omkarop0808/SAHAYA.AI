@@ -109,12 +109,11 @@ export async function callGemini(systemPrompt, userPrompt, options = {}) {
 }
 
 /**
- * Deep reasoning: Claude when configured, else same stack as callGemini.
+ * Deep reasoning: Groq → Gemini → HF (same as callGemini). Claude is not used in-app.
  */
 export async function callDeepReason(systemPrompt, userPrompt, options = {}) {
   const maxTokens = options.maxTokens ?? 4096;
-  const key = getClaudeKey();
-  if (key) {
+  if (process.env.USE_CLAUDE_API === 'true' && getClaudeKey()) {
     try {
       const userContent =
         options.jsonMode
@@ -124,7 +123,7 @@ export async function callDeepReason(systemPrompt, userPrompt, options = {}) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': key,
+          'x-api-key': getClaudeKey(),
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
@@ -138,12 +137,9 @@ export async function callDeepReason(systemPrompt, userPrompt, options = {}) {
         const data = await res.json();
         const text = data?.content?.find((b) => b.type === 'text')?.text;
         if (text) return text;
-      } else {
-        const body = await readErrorBody(res);
-        console.warn('Claude error, falling back:', body);
       }
-    } catch (e) {
-      console.warn('Claude request failed, falling back:', e?.message);
+    } catch {
+      /* fall through */
     }
   }
   return callGemini(systemPrompt, userPrompt, { maxTokens, jsonMode: options.jsonMode });

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import WorldToggle from './world/WorldToggle';
 
 export default function LandingNav() {
   const navigate = useNavigate();
@@ -27,6 +28,9 @@ export default function LandingNav() {
       </div>
 
       <div className="hidden md:flex gap-2.5 ml-auto">
+        <div className="hidden lg:block">
+          <WorldToggle compact />
+        </div>
         <button
           className="bg-transparent border-2 border-[#0D0D0D] text-sm font-semibold px-5 py-2 rounded-[8px] hover:bg-[#F0F0F0] transition-colors text-[#0D0D0D]"
           onClick={() => navigate('/login')}

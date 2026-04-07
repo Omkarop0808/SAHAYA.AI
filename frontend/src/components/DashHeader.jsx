@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { User, LogOut, Edit, ChevronDown, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+import WorldToggle from './world/WorldToggle';
 
 export default function DashHeader({ title }) {
   const { user, logout } = useAuth();
@@ -47,7 +48,9 @@ export default function DashHeader({ title }) {
         )}
       </div>
 
-      <div
+      <div className="flex items-center gap-3">
+        <WorldToggle compact />
+        <div
         className="relative flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-[8px] border-2 border-[#E0E0E0] hover:border-[#0D0D0D] transition-colors select-none"
         onClick={() => setOpen(!open)}
       >
@@ -84,6 +87,7 @@ export default function DashHeader({ title }) {
             </button>
           </div>
         )}
+        </div>
       </div>
     </header>
   );
