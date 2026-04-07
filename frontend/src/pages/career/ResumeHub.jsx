@@ -16,6 +16,7 @@ export default function ResumeHub() {
   const [err, setErr] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [intel, setIntel] = useState(null);
+  const [intelLoading, setIntelLoading] = useState(false);
   const [jdScan, setJdScan] = useState(null);
 
   const effectiveGoal = goal === 'Custom' ? customGoal.trim() || 'Software Engineer' : goal;
@@ -23,14 +24,21 @@ export default function ResumeHub() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      setLoading('intel');
+      setIntelLoading(true);
+      const timeout = setTimeout(() => {
+        if (!cancelled) {
+          setIntel((cur) => cur || { intel: { trends: ['Market intel still loading — check API keys or retry.'], twoWeekRoadmap: [] }, tavilyOk: false });
+          setIntelLoading(false);
+        }
+      }, 12000);
       try {
         const data = await getRoleIntelligence(effectiveGoal);
         if (!cancelled) setIntel(data);
       } catch {
         if (!cancelled) setIntel({ intel: { trends: ['Enable TAVILY_API_KEY and GEMINI_API_KEY for live market scan.'], twoWeekRoadmap: [] }, tavilyOk: false });
       } finally {
-        if (!cancelled) setLoading('');
+        clearTimeout(timeout);
+        if (!cancelled) setIntelLoading(false);
       }
     })();
     return () => { cancelled = true; };
@@ -69,8 +77,6 @@ export default function ResumeHub() {
     const q = encodeURIComponent(topics.slice(0, 8).join(', ') || 'review fundamentals');
     navigate(`/career/interview?focus=${q}`);
   };
-
-  if (loading === 'intel' && !intel) return <LoadingSkeleton lines={8} className="career-card p-6" />;
 
   return (
     <div className="space-y-6">
@@ -125,9 +131,13 @@ export default function ResumeHub() {
             <LineChart size={18} />
             <span className="text-xs font-extrabold uppercase tracking-[0.28em]">Role intelligence (Tavily)</span>
           </div>
-          {!intel?.intel ? (
-            <div className="text-sm text-white/55">Loading…</div>
-          ) : (
+          {intelLoading && !intel?.intel ? (
+            <LoadingSkeleton lines={4} className="rounded-[12px]" />
+          ) : null}
+          {!intel?.intel && !intelLoading ? (
+            <div className="text-sm text-white/55">No data yet.</div>
+          ) : null}
+          {intel?.intel ? (
             <div className="space-y-3 text-sm text-white/80">
               <ul className="list-disc pl-5 space-y-1">
                 {(intel.intel.trends || []).map((t, i) => <li key={i}>{t}</li>)}
@@ -145,7 +155,7 @@ export default function ResumeHub() {
                 ))}
               </ul>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 

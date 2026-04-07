@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import ReactFlow, { Background, Controls, Handle, MarkerType, Position, useEdgesState, useNodesState } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { ErrorState, LoadingSkeleton } from '../../components/PageStates';
+import { ErrorState } from '../../components/PageStates';
 import { getCareerConceptMap, setCareerTopicState, fetchConceptLesson } from '../../utils/careerApi';
 import { ExternalLink, Loader2, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -51,14 +51,37 @@ function toFlowElements(nodes, edges) {
   return { flowNodes, flowEdges };
 }
 
+// Static base graph used for initial render (no API required)
+const BASE_GRAPH = {
+  nodes: [
+    { id: 'arrays', label: 'Arrays', description: 'Core iteration, indexing, prefix sums.', x: 140, y: 110 },
+    { id: 'hashing', label: 'Hashing', description: 'Maps/sets for O(1) lookups.', x: 320, y: 110 },
+    { id: 'two-pointers', label: 'Two pointers', description: 'Inward/outward pointer patterns.', x: 500, y: 110 },
+    { id: 'stacks', label: 'Stacks', description: 'Monotonic stack, parsing, next greater.', x: 230, y: 250 },
+    { id: 'binary-search', label: 'Binary search', description: 'Search on answer; invariants.', x: 410, y: 250 },
+    { id: 'graphs', label: 'Graphs', description: 'BFS/DFS, shortest paths.', x: 620, y: 250 },
+    { id: 'dp', label: 'DP', description: 'Optimal substructure; transitions.', x: 740, y: 120 },
+  ],
+  edges: [
+    { from: 'arrays', to: 'hashing' },
+    { from: 'arrays', to: 'two-pointers' },
+    { from: 'hashing', to: 'stacks' },
+    { from: 'two-pointers', to: 'binary-search' },
+    { from: 'binary-search', to: 'graphs' },
+    { from: 'graphs', to: 'dp' },
+  ],
+};
+
 export default function ConceptMap() {
-  const [state, setState] = useState({ loading: true, error: null, data: null });
+  const [state, setState] = useState({ loading: false, error: null, data: null });
   const [selected, setSelected] = useState(null);
   const [saving, setSaving] = useState(false);
   const [lesson, setLesson] = useState(null);
   const [lessonLoading, setLessonLoading] = useState(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  const initial = useMemo(() => toFlowElements(BASE_GRAPH.nodes, BASE_GRAPH.edges), []);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initial.flowNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initial.flowEdges);
 
   const load = async () => {
     setState({ loading: true, error: null, data: null });
@@ -66,7 +89,12 @@ export default function ConceptMap() {
       const data = await getCareerConceptMap();
       setState({ loading: false, error: null, data });
     } catch {
-      setState({ loading: false, error: 'Failed to load concept map.', data: null });
+      // Keep static graph visible; just surface a gentle warning banner.
+      setState({
+        loading: false,
+        error: 'Concept state is offline. Graph is using default layout — retry to sync progress.',
+        data: null,
+      });
     }
   };
 
@@ -113,13 +141,13 @@ export default function ConceptMap() {
   };
 
   const recommended = useMemo(() => {
-    const nodesList = state.data?.nodes || [];
+    const nodesList = (state.data?.nodes || BASE_GRAPH.nodes).map((n) => ({
+      ...n,
+      status: n.status || 'not_started',
+    }));
     const notDone = nodesList.filter((n) => n.status === 'not_started' || n.status === 'learning');
     return notDone[0] || null;
   }, [state.data]);
-
-  if (state.loading) return <LoadingSkeleton lines={7} className="career-card p-6" />;
-  if (state.error) return <ErrorState message={state.error} onRetry={load} />;
 
   return (
     <div className="space-y-6">

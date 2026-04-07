@@ -2,7 +2,7 @@ import express from 'express';
 import { randomUUID } from 'crypto';
 import vm from 'vm';
 import { authMiddleware } from '../middleware/auth.js';
-import { callGroqChat, callGeminiStructuredJSON } from '../services/careerAi.js';
+import { callGroqChat, callGroqChatJSON, callGeminiStructuredJSON } from '../services/careerAi.js';
 import { ragRetrieve } from '../services/ragLocal.js';
 import { tavilySearch } from '../services/tavily.js';
 import { findAll, findOne, insertOne, upsertOne, updateOne } from '../middleware/db.js';
@@ -420,7 +420,14 @@ async function interviewRagContext(track) {
 // Interview Hub
 router.post('/interview/start', authMiddleware, async (req, res) => {
   const userId = req.userId;
-  const { track = 'dsa', focusTopics = '' } = req.body || {};
+  const {
+    track = 'dsa',
+    focusTopics = '',
+    targetQuestions: tq = 5,
+    difficulty = 'mid',
+    companyStyle = 'general',
+  } = req.body || {};
+  const targetQuestions = Math.min(12, Math.max(3, Number(tq) || 5));
   const sessionId = randomUUID();
   let ragBits = '';
   try {
@@ -428,17 +435,40 @@ router.post('/interview/start', authMiddleware, async (req, res) => {
   } catch (e) {
     console.warn('interview RAG:', e?.message);
   }
-  const system = `You are an AI mock interviewer. Ask one question at a time and wait for the candidate's response.
-Track: ${track}.
-Ground your questions in realistic interview patterns. Reference themes from CONTEXT only when helpful — do not quote it verbatim.
-Return plain text only.`;
+  const system = `You are an AI mock interviewer. Ask ONE clear question only.
+Track: ${track}. Difficulty: ${difficulty}. Company style to emulate: ${companyStyle}.
+Ground questions in realistic interview patterns using CONTEXT as inspiration (do not copy verbatim).
+Respond with ONLY valid JSON: {"question":"your first question text"}`;
   const focusLine = focusTopics ? `Student wants extra focus on: ${String(focusTopics).slice(0, 2000)}` : '';
-  const prompt = `CONTEXT (retrieved patterns):\n${ragBits || '(none)'}\n\n${focusLine}\n\nStart a new ${track} interview. Ask a strong opening question appropriate for junior-to-mid level candidates.`;
+  const prompt = `CONTEXT:\n${ragBits || '(none)'}\n\n${focusLine}\n\nThis is question 1 of ${targetQuestions} in the session. Open with an appropriate first question.`;
   try {
-    const question = await callGroqChat(system, prompt, { maxTokens: 260 });
-    const doc = { id: sessionId, userId, track, history: [{ role: 'assistant', content: question }], createdAt: nowIso(), updatedAt: nowIso() };
+    let question;
+    try {
+      const parsed = await callGroqChatJSON(system, prompt, 320);
+      question = typeof parsed?.question === 'string' ? parsed.question : null;
+    } catch {
+      question = null;
+    }
+    if (!question) {
+      question = await callGroqChat(
+        `You are a concise interviewer for ${track}. Return plain text: one opening question only.`,
+        prompt,
+        { maxTokens: 220 },
+      );
+    }
+    const doc = {
+      id: sessionId,
+      userId,
+      track,
+      targetQuestions,
+      difficulty,
+      companyStyle,
+      history: [{ role: 'assistant', content: question }],
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    };
     await insertOne(COL_INTERVIEWS, doc);
-    res.json({ sessionId, question });
+    res.json({ sessionId, question, targetQuestions, difficulty, companyStyle });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -451,21 +481,77 @@ router.post('/interview/turn', authMiddleware, async (req, res) => {
   const session = await findOne(COL_INTERVIEWS, (s) => s.id === sessionId && s.userId === userId);
   if (!session) return res.status(404).json({ error: 'Session not found' });
 
+  const targetQ = session.targetQuestions || 5;
   const nextHistory = [...(session.history || []), { role: 'user', content: answer }];
+  const assistantCount = nextHistory.filter((m) => m.role === 'assistant').length;
+  const userCount = nextHistory.filter((m) => m.role === 'user').length;
+
+  if (userCount === targetQ && assistantCount === targetQ) {
+    await updateOne(COL_INTERVIEWS, (s) => s.id === sessionId && s.userId === userId, { history: nextHistory, updatedAt: nowIso() });
+    return res.json({
+      complete: true,
+      metrics: { confidence: 70, technical: 70, structure: 70, communication: 70, tip: 'Session complete — generate your full report.' },
+      closingMessage: "That's the end of the planned question set. Click **End & Report** for your scorecard, radar chart, and improvement plan.",
+    });
+  }
+
   let ragBits = '';
   try {
     ragBits = await interviewRagContext(session.track);
   } catch {
     /* optional */
   }
-  const system = `You are an AI mock interviewer. Ask a single follow-up question based on the candidate's last answer.
-Use CONTEXT for realistic pattern coverage. Return plain text only.`;
-  const prompt = `CONTEXT:\n${ragBits || '(none)'}\n\nTrack: ${session.track}\nConversation so far:\n${nextHistory.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}\n\nAsk the next question now.`;
+
+  const nextQNum = assistantCount + 1;
+  const system = `You are an AI interviewer. Read the conversation and the candidate's LAST answer.
+Return ONLY valid JSON with this shape:
+{
+  "question": "next single interview question",
+  "metrics": {
+    "confidence": 0-100,
+    "technical": 0-100,
+    "structure": 0-100,
+    "communication": 0-100,
+    "tip": "one actionable sentence of feedback on their last answer"
+  }
+}
+Rules: question must be one concise paragraph. Difficulty: ${session.difficulty || 'mid'}. Style: ${session.companyStyle || 'general'}.`;
+  const prompt = `CONTEXT:\n${ragBits || '(none)'}\n\nTrack: ${session.track}\nQuestion ${nextQNum} of ${targetQ} (you are about to ask question ${nextQNum}).\nConversation:\n${nextHistory.map((m) => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}\n\nGenerate JSON now.`;
+
   try {
-    const question = await callGroqChat(system, prompt, { maxTokens: 280 });
+    let parsed;
+    try {
+      parsed = await callGroqChatJSON(system, prompt, 700);
+    } catch {
+      parsed = null;
+    }
+    let question = parsed?.question;
+    let metrics = parsed?.metrics;
+    if (!question || typeof question !== 'string') {
+      question = await callGroqChat(
+        `You are an interviewer. One follow-up question only. Plain text.`,
+        prompt,
+        { maxTokens: 260 },
+      );
+      metrics = { confidence: 60, technical: 60, structure: 60, communication: 60, tip: 'Keep answers structured and cite tradeoffs.' };
+    }
+    if (!metrics || typeof metrics !== 'object') {
+      metrics = { confidence: 65, technical: 65, structure: 65, communication: 65, tip: 'Good effort — add complexity and edge cases next time.' };
+    }
     nextHistory.push({ role: 'assistant', content: question });
     await updateOne(COL_INTERVIEWS, (s) => s.id === sessionId && s.userId === userId, { history: nextHistory, updatedAt: nowIso() });
-    res.json({ question });
+    res.json({
+      question,
+      metrics: {
+        confidence: Number(metrics.confidence) || 0,
+        technical: Number(metrics.technical) || 0,
+        structure: Number(metrics.structure) || 0,
+        communication: Number(metrics.communication) || 0,
+        tip: String(metrics.tip || ''),
+      },
+      turnIndex: nextQNum,
+      targetQuestions: targetQ,
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -481,17 +567,23 @@ router.post('/interview/final', authMiddleware, async (req, res) => {
 {
   "overallScore": 0-100,
   "verdict": "Excellent"|"Good"|"Needs work",
+  "grade": "A"|"B"|"C"|"D"|"F",
+  "placementReadiness": "Ready"|"Not Ready"|"Borderline",
   "categoryScores": [
     { "name": "Problem Solving", "score": 0-100, "notes": "string" },
     { "name": "Communication", "score": 0-100, "notes": "string" },
     { "name": "Correctness & Edge Cases", "score": 0-100, "notes": "string" },
     { "name": "Complexity Awareness", "score": 0-100, "notes": "string" }
   ],
+  "radar": { "technical": 0-100, "communication": 0-100, "confidence": 0-100, "structure": 0-100, "realtime": 0-100 },
+  "questionReviews": [{ "index": 1, "prompt": "short", "score": 0-10, "feedback": "string" }],
+  "improvementPlan": { "week1": "string", "week2": "string", "week3": "string" },
   "strengths": ["..."],
   "improvements": ["..."],
   "nextTopics": ["..."],
   "report": "2-3 paragraph markdown-like text"
-}`;
+}
+Derive questionReviews from the assistant questions in the conversation (summarize each). Fill radar from your judgment of the whole session.`;
   const prompt = `Track: ${session.track}\nConversation:\n${(session.history || []).map((m) => `${m.role.toUpperCase()}: ${m.content}`).join('\n')}\n\nGenerate the assessment now.`;
   let assessment;
   try {
