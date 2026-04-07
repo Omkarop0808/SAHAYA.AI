@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import ReactFlow, { Background, Controls, MarkerType, useEdgesState, useNodesState } from 'reactflow';
+import ReactFlow, { Background, Controls, Handle, MarkerType, Position, useEdgesState, useNodesState } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ErrorState, LoadingSkeleton } from '../../components/PageStates';
 import { getCareerConceptMap, setCareerTopicState, fetchConceptLesson } from '../../utils/careerApi';
@@ -14,21 +14,32 @@ const STATUS_COLOR = {
   mastered: '#A855F7',
 };
 
+function TopicNode({ data }) {
+  const stroke = STATUS_COLOR[data.status] || STATUS_COLOR.not_started;
+  return (
+    <div
+      className="rounded-[12px] px-3 py-2 min-w-[120px] text-center font-mono text-[13px]"
+      style={{
+        border: `1px solid ${stroke}`,
+        background: '#111118',
+        color: '#F8FAFC',
+      }}
+    >
+      <Handle type="target" position={Position.Top} className="!bg-[var(--career-accent2)] !w-2 !h-2" />
+      <div className="font-semibold leading-tight">{data.label}</div>
+      <Handle type="source" position={Position.Bottom} className="!bg-[var(--career-accent)] !w-2 !h-2" />
+    </div>
+  );
+}
+
+const nodeTypes = { topic: TopicNode };
+
 function toFlowElements(nodes, edges) {
   const flowNodes = nodes.map((n) => ({
     id: n.id,
+    type: 'topic',
     position: { x: n.x ?? 0, y: n.y ?? 0 },
     data: { label: n.label, status: n.status, description: n.description },
-    style: {
-      border: `1px solid ${STATUS_COLOR[n.status] || STATUS_COLOR.not_started}`,
-      borderRadius: 12,
-      padding: 12,
-      background: '#111118',
-      color: '#F8FAFC',
-      minWidth: 140,
-      fontSize: 13,
-      fontFamily: 'JetBrains Mono, ui-monospace, monospace',
-    },
   }));
   const flowEdges = edges.map((e, i) => ({
     id: `e-${i}-${e.from}-${e.to}`,
@@ -134,6 +145,7 @@ export default function ConceptMap() {
             <ReactFlow
               nodes={nodes}
               edges={edges}
+              nodeTypes={nodeTypes}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onNodeClick={onNodeClick}
