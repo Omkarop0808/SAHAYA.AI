@@ -26,13 +26,14 @@ import PracticeEnginePage from './pages/PracticeEnginePage';
 import ExamSimulator from './pages/ExamSimulator';
 import GoalsSprints from './pages/GoalsSprints';
 import CompetitiveArena from './pages/CompetitiveArena';
+import JobHunterPage from './features/job-hunter/JobHunterPage';
 
 import CareerShell from './components/career/CareerShell';
 import CareerDashboard from './pages/career/CareerDashboard';
 import AlgorithmVisualizer from './pages/career/AlgorithmVisualizer';
 import ProblemArena from './pages/career/ProblemArena';
 import InterviewHub from './pages/career/InterviewHub';
-import ConceptMap from './pages/career/ConceptMap';
+import CareerRoadmap from './pages/career/CareerRoadmap';
 import ResumeHub from './pages/career/ResumeHub';
 
 function RequireAuth({ children }) {
@@ -106,6 +107,7 @@ export default function App() {
               <Route path="/study/exam" element={<RequireEdu><ExamSimulator /></RequireEdu>} />
               <Route path="/study/goals" element={<RequireEdu><GoalsSprints /></RequireEdu>} />
               <Route path="/study/arena" element={<RequireEdu><CompetitiveArena /></RequireEdu>} />
+              <Route path="/job-hunter" element={<RequireEdu><JobHunterPage /></RequireEdu>} />
 
               {/* Career World */}
               <Route path="/career" element={<RequireEdu><CareerShell /></RequireEdu>}>
@@ -113,7 +115,7 @@ export default function App() {
                 <Route path="visualizer" element={<AlgorithmVisualizer />} />
                 <Route path="arena" element={<ProblemArena />} />
                 <Route path="interview" element={<InterviewHub />} />
-                <Route path="map" element={<ConceptMap />} />
+                <Route path="roadmap" element={<CareerRoadmap />} />
                 <Route path="resume" element={<ResumeHub />} />
                 <Route path="*" element={<Navigate to="/career/dashboard" replace />} />
               </Route>

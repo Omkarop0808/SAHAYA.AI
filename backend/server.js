@@ -28,6 +28,7 @@ import studyGoalsRoutes from './routes/studyGoals.js';
 import studyArenaRoutes from './routes/studyArena.js';
 import studyGamificationRoutes from './routes/studyGamification.js';
 import careerRoutes from './routes/career.js';
+import jobHunterRoutes from './job-hunter/routes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -59,6 +60,7 @@ app.use('/api/study/goals', studyGoalsRoutes);
 app.use('/api/study/arena', studyArenaRoutes);
 app.use('/api/study', studyGamificationRoutes);
 app.use('/api/career', careerRoutes);
+app.use('/api/job-hunter', jobHunterRoutes);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
@@ -85,6 +87,8 @@ const server = app.listen(PORT, () => {
   const supa = process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_KEY);
   console.log(`🗄️ Supabase: ${supa ? '✅ Enabled (app_data_rows)' : '❌ Not set — using backend/data/*.json'}`);
   console.log(`📧 Mail: ${process.env.MAIL_USER ? '✅ Set' : '❌ Missing — add to .env'}\n`);
+  const requiredAiKeysLoaded = Boolean(process.env.GROQ_API_KEY && process.env.GEMINI_API_KEY && process.env.TAVILY_API_KEY);
+  console.log(`🔐 Required AI keys (GROQ/GEMINI/TAVILY): ${requiredAiKeysLoaded ? '✅ Loaded' : '❌ Missing one or more'}\n`);
 });
 
 server.on('error', (err) => {

@@ -16,6 +16,7 @@ import {
   Zap,
   MessageCircle,
   FlaskConical,
+  BriefcaseBusiness,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useStudyCoachPing } from '../hooks/useStudyCoachPing';
@@ -30,6 +31,7 @@ const navItems = [
   { to: '/study/exam',  icon: ListChecks,   label: 'Adaptive Exam' },
   { to: '/study/goals', icon: Target,       label: 'Goals & Sprints' },
   { to: '/study/arena', icon: Trophy,       label: 'Arena' },
+  { to: '/job-hunter', icon: BriefcaseBusiness, label: 'Job Hunter' },
   { to: '/materials',   icon: BookOpen,   label: 'Study Materials' },
   { to: '/quiz',        icon: Brain,      label: 'Quiz', badge: 'AI' },
   { to: '/timetable',   icon: Calendar,   label: 'Timetable' },
