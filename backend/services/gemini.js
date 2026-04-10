@@ -72,6 +72,7 @@ export async function callGemini(systemPrompt, userPrompt, options = {}) {
         });
       } catch (err) {
         lastProviderError = err?.message || 'Groq call failed';
+        console.error(`[AI] Groq attempt ${attempt + 1} failed: ${lastProviderError}`);
         if (attempt === 0) await sleep(1000);
       }
     }
@@ -191,7 +192,7 @@ export async function embedTextMiniLM(text) {
   const inputs = text.trim().slice(0, 8000);
   const url =
     'https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction';
-  const fallback = `https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2`;
+  const fallback = `https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction`;
   for (const endpoint of [url, fallback]) {
     try {
       const response = await fetch(endpoint, {
@@ -270,7 +271,7 @@ async function callHuggingFaceFallback(systemPrompt, userPrompt, maxTokens) {
   for (const model of modelCandidates) {
     const endpoints = [
       'https://router.huggingface.co/v1/chat/completions',
-      `https://api-inference.huggingface.co/models/${encodeURIComponent(model)}/v1/chat/completions`,
+      `https://router.huggingface.co/hf-inference/models/${encodeURIComponent(model)}/v1/chat/completions`,
     ];
     for (const endpoint of endpoints) {
       const response = await fetch(endpoint, {
