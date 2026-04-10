@@ -11,6 +11,7 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
   const [initError, setInitError] = useState(null);
   const zpRef = useRef(null);
   const timerRef = useRef(null);
+  const hasJoinedRef = useRef(false); // Guard: only true after successful room join
   
   const { transcript, startListening, stopListening } = useSpeechTracker();
   const { metrics, startMonitoring, stopMonitoring } = useFaceMonitor(localVideoRef);
@@ -47,6 +48,14 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
           showLeavingView: false,
           showLeaveRoomConfirmDialog: false,
           onJoinRoom: () => {
+            hasJoinedRef.current = true; // Mark as successfully joined
+            
+            // Start the GD duration timer ONLY after successful join
+            const safeDuration = (duration && duration > 0) ? duration : 10;
+            timerRef.current = setTimeout(() => {
+              handleComplete();
+            }, safeDuration * 60 * 1000);
+
             navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
               if (localVideoRef.current) {
                 localVideoRef.current.srcObject = stream;
@@ -56,7 +65,10 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
             }).catch(err => console.warn('Failed to obtain stream for AI', err));
           },
           onLeaveRoom: () => {
-            handleComplete();
+            // Only trigger completion if the room was actually joined
+            if (hasJoinedRef.current) {
+              handleComplete();
+            }
           }
         });
       } catch (err) {
@@ -69,10 +81,6 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
 
     initZego();
 
-    timerRef.current = setTimeout(() => {
-      handleComplete();
-    }, duration * 60 * 1000);
-
     return () => {
       cancelled = true;
       clearTimeout(timerRef.current);
@@ -84,6 +92,7 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
 
   const handleComplete = async () => {
     if (isAnalyzing) return;
+    if (!hasJoinedRef.current) return; // Never end if room was never joined
     setIsAnalyzing(true);
     stopListening();
     stopMonitoring();
@@ -140,7 +149,10 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
             Retry
           </button>
           <button 
-            onClick={handleComplete}
+            onClick={() => {
+              hasJoinedRef.current = true; // Allow handleComplete to proceed for skip
+              handleComplete();
+            }}
             className="px-6 py-2 bg-[var(--career-accent)] text-white font-medium rounded-lg shadow-lg hover:opacity-80 transition-all"
           >
             Skip &amp; Get AI Feedback
@@ -164,7 +176,10 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
           </code>
         </div>
         <button 
-          onClick={handleComplete}
+          onClick={() => {
+            hasJoinedRef.current = true;
+            handleComplete();
+          }}
           className="px-6 py-2 bg-[var(--career-accent)] text-white font-medium rounded-lg shadow-lg hover:opacity-80 transition-all"
         >
           Simulate GD Completion &amp; Get Feedback
