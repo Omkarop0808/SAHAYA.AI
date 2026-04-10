@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import DashHeader from '../components/DashHeader';
+import { useGamification } from '../context/GamificationContext';
 
 const commonSubjects = [
   'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English', 'History',
@@ -12,6 +13,7 @@ const commonSubjects = [
 
 export default function Profile() {
   const { user, eduData, saveEduData, logout } = useAuth();
+  const { profile, getRankName } = useGamification();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [editing, setEditing] = useState(searchParams.get('edit') === 'true');
@@ -50,18 +52,50 @@ export default function Profile() {
           {saveMsg && <div className={`border-2 rounded-[8px] px-3.5 py-2.5 text-sm ${saveMsg.startsWith('✓') ? 'bg-[#f0fdf4] border-[#bbf7d0] text-[#2d8a4e]' : 'bg-[#fff0f0] border-red-400 text-red-700'}`}>{saveMsg}</div>}
 
           {/* Account info */}
-          <div className="bg-white border-2 border-[#0D0D0D] rounded-[24px] px-7 py-6 flex items-center gap-4">
-            <div className="w-14 h-14 bg-[#FFB6C1] rounded-full border-2 border-[#0D0D0D] flex items-center justify-center font-display text-[22px] font-extrabold flex-shrink-0">
-              {user?.name?.[0]?.toUpperCase() || 'U'}
+          <div className="bg-white border-2 border-[#0D0D0D] rounded-[24px] px-7 py-6 flex items-start gap-5 relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FFFF66]/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative border-4 border-[#0D0D0D] p-1 rounded-full bg-white shadow-lg z-10 w-[88px] h-[88px] flex items-center justify-center">
+              <div className="w-full h-full bg-[#FFB6C1] rounded-full flex items-center justify-center font-display text-3xl font-extrabold flex-shrink-0">
+                {user?.name?.[0]?.toUpperCase() || 'U'}
+              </div>
+              {profile?.level >= 5 && (
+                 <div className="absolute -inset-1 rounded-full border-[3px] border-dashed border-purple-400 rotate-180 animate-spin-slow pointer-events-none" />
+              )}
+              {profile?.level >= 10 && (
+                 <div className="absolute -bottom-2 -right-2 bg-black text-yellow-400 text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-yellow-400 whitespace-nowrap">Elite Frame</div>
+              )}
             </div>
-            <div>
-              <h2 className="text-xl font-extrabold mb-[3px]">{user?.name}</h2>
-              <p className="text-sm text-[#555555]">{user?.email}</p>
+            
+            <div className="flex-1 mt-1">
+              <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-extrabold mb-[2px] text-[#0D0D0D]">{user?.name}</h2>
+                    <span className="text-[10px] px-2 py-1 rounded bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold uppercase tracking-widest leading-none">
+                       {profile ? getRankName(profile.xp) : 'Rookie'}
+                    </span>
+                 </div>
+                 <button onClick={() => { logout(); navigate('/'); }}
+                   className="px-5 py-2 bg-transparent border-2 border-red-500 rounded-[8px] text-red-500 text-sm font-semibold hover:bg-[#fff0f0] transition-colors cursor-pointer">
+                   Logout
+                 </button>
+              </div>
+              <p className="text-sm text-[#555555] font-medium">{user?.email}</p>
+              
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#E0E0E0]">
+                 <div className="text-sm font-bold"><span className="text-[#999]">Level</span> {profile?.level || 1}</div>
+                 <div className="text-sm font-bold"><span className="text-[#999]">XP</span> {profile?.xp || 0}</div>
+                 <div className="text-sm font-bold text-orange-500 flex items-center gap-1">🔥 {profile?.streak || 0} Days</div>
+              </div>
+              
+              <div className="mt-4 flex gap-2">
+                 <div className="text-[11px] font-bold text-[#0D0D0D] bg-[#F0F0F0] px-3 py-1.5 rounded-full border border-[#E0E0E0] inline-block opacity-70 cursor-not-allowed">
+                    <span className="opacity-50">Equipped Title:</span> Scholar of React
+                 </div>
+                 <div className="text-[11px] font-bold text-[#0D0D0D] bg-[#F0F0F0] px-3 py-1.5 rounded-full border border-[#E0E0E0] inline-block opacity-70 cursor-not-allowed">
+                    <span className="opacity-50">Equipped Frame:</span> Golden Laurel
+                 </div>
+              </div>
             </div>
-            <button onClick={() => { logout(); navigate('/'); }}
-              className="ml-auto px-5 py-2 bg-transparent border-2 border-red-500 rounded-[8px] text-red-500 text-sm font-semibold hover:bg-[#fff0f0] transition-colors">
-              Logout
-            </button>
           </div>
 
           <div className="bg-white border-2 border-[#0D0D0D] rounded-[24px] overflow-hidden">

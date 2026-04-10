@@ -3,6 +3,7 @@ import { Flame, Gauge, Trophy, Zap } from 'lucide-react';
 import { ErrorState, LoadingSkeleton, EmptyState } from '../../components/PageStates';
 import { getCareerDashboard, getCareerAnalyticsSummary, getGamificationQuests } from '../../utils/careerApi';
 import { NavLink } from 'react-router-dom';
+import DailyQuestsPanel from '../../components/gamification/DailyQuestsPanel';
 
 function Stat({ icon: Icon, label, value, hint }) {
   return (
@@ -142,20 +143,8 @@ export default function CareerDashboard() {
         </div>
       </div>
 
-      <div className="career-card p-6">
-        <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Daily quests (Career)</div>
-        <div className="font-display font-extrabold text-xl mt-1">Shared gamification layer</div>
-        <div className="mt-4 space-y-2">
-          {quests.length ? quests.map((q) => (
-            <div key={q.id} className="border border-white/10 rounded-2xl p-4 bg-white/[0.03] flex items-center justify-between gap-3">
-              <div>
-                <div className="font-semibold">{q.title}</div>
-                <div className="text-xs text-white/55 mt-1">{q.current}/{q.target} · +{q.xpReward} XP</div>
-              </div>
-              <div className="career-chip">{q.completed ? 'DONE' : 'ACTIVE'}</div>
-            </div>
-          )) : <div className="text-sm text-white/60">No quests available yet.</div>}
-        </div>
+      <div className="career-card !p-0 overflow-hidden bg-transparent border-none">
+        <DailyQuestsPanel world="career" />
       </div>
 
       {analytics ? (

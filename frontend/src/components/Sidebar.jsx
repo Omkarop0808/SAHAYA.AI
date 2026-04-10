@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useGamification } from '../context/GamificationContext';
 import { useStudyCoachPing } from '../hooks/useStudyCoachPing';
 
 const navItems = [
@@ -18,6 +19,7 @@ const navItems = [
   { to: '/study/upload', icon: Upload,     label: 'Study Studio' },
   { to: '/study/planner', icon: CalendarDays, label: 'Study Planner' },
   { to: '/study/practice-hub', icon: Sparkles, label: 'Smart Practice', badge: 'NEW' },
+  { to: '/leaderboard', icon: Trophy, label: 'World Leaderboard', badge: 'HOT' },
   { to: '/study/arena', icon: Trophy,       label: 'Arena' },
   { to: '/materials',   icon: BookOpen,   label: 'Study Materials' },
   { to: '/growth',      icon: TrendingUp, label: 'Growth Analysis' },
@@ -25,6 +27,7 @@ const navItems = [
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const { profile } = useGamification();
   const navigate = useNavigate();
   useStudyCoachPing();
 
@@ -82,8 +85,9 @@ export default function Sidebar() {
               isActive ? 'bg-[#FFFF66] text-[#0D0D0D]' : 'text-white/50 hover:bg-white/[0.06] hover:text-white'
             }`
           }>
-          <div className="w-6 h-6 bg-[#FFB6C1] rounded-full flex items-center justify-center text-[#0D0D0D] font-bold text-[11px] flex-shrink-0">
+          <div className="w-6 h-6 bg-[#FFB6C1] rounded-full flex items-center justify-center text-[#0D0D0D] font-bold text-[11px] flex-shrink-0 relative">
             {user?.name?.[0]?.toUpperCase() || 'U'}
+            {profile && <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-tr from-yellow-400 to-yellow-200 rounded-full border border-black shadow-sm" title={`Level ${profile.level}`} />}
           </div>
           <span className="truncate flex-1">{user?.name || 'Profile'}</span>
           <User size={13} className="flex-shrink-0 opacity-50" />

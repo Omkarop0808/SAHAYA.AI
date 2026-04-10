@@ -8,7 +8,7 @@ import { askStudyQuestion } from '../utils/ai';
 import api from '../utils/api';
 import { useSession } from '../hooks/useSession';
 import { getCareerAnalyticsSummary } from '../utils/careerApi';
-
+import DailyQuestsPanel from '../components/gamification/DailyQuestsPanel';
 const NOTEBOOK_COLORS = [
   { cover: '#FFB6C1', spine: '#f0849a' },
   { cover: '#87CEEB', spine: '#5bb8d4' },
@@ -139,6 +139,12 @@ export default function Dashboard() {
               <p className="text-sm text-[#999999]">No Career analytics yet. Start in Career World to populate metrics.</p>
             )}
           </div>
+
+          {/* Daily Quests Panel */}
+          <div className="animate-fadeUp">
+             <DailyQuestsPanel world="study" />
+          </div>
+
 
           {/* Global search */}
           <div className="animate-fadeUp">

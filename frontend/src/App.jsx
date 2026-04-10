@@ -2,14 +2,17 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { WorldProvider } from './context/WorldContext';
+import { GamificationProvider } from './context/GamificationContext';
 import WorldRouteTracker from './components/world/WorldRouteTracker';
 import WorldTransitionOverlay from './components/world/WorldTransitionOverlay';
+import LevelUpOverlay from './components/gamification/LevelUpOverlay';
 
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import DataCollection from './pages/DataCollection';
 import Dashboard from './pages/Dashboard';
+import GlobalLeaderboard from './pages/GlobalLeaderboard';
 import GrowthAnalysis from './pages/GrowthAnalysis';
 import StudyMaterials from './pages/StudyMaterials';
 import SubjectPage from './pages/SubjectPage';
@@ -71,55 +74,59 @@ function RequireEdu({ children }) {
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <WorldProvider>
-          <WorldRouteTracker />
-          <WorldTransitionOverlay />
-          <div id="world-content" className="min-h-screen">
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
-              <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
-              <Route path="/data-collection" element={<RequireAuth><DataCollection /></RequireAuth>} />
+      <GamificationProvider>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <WorldProvider>
+            <WorldRouteTracker />
+            <WorldTransitionOverlay />
+            <LevelUpOverlay />
+            <div id="world-content" className="min-h-screen">
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
+                <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
+                <Route path="/data-collection" element={<RequireAuth><DataCollection /></RequireAuth>} />
 
-              <Route path="/dashboard" element={<RequireEdu><Dashboard /></RequireEdu>} />
-              <Route path="/growth" element={<RequireEdu><GrowthAnalysis /></RequireEdu>} />
-              <Route path="/materials" element={<RequireEdu><StudyMaterials /></RequireEdu>} />
-              <Route path="/subject/:subjectName" element={<RequireEdu><SubjectPage /></RequireEdu>} />
-              <Route path="/profile" element={<RequireEdu><Profile /></RequireEdu>} />
-              <Route path="/study/upload" element={<RequireEdu><SmartUploadHub /></RequireEdu>} />
-              <Route path="/study/practice-hub" element={<RequireEdu><SmartPracticeHub /></RequireEdu>} />
-              <Route path="/study/planner" element={<RequireEdu><StudyPlanner /></RequireEdu>} />
+                <Route path="/dashboard" element={<RequireEdu><Dashboard /></RequireEdu>} />
+                <Route path="/leaderboard" element={<RequireEdu><GlobalLeaderboard /></RequireEdu>} />
+                <Route path="/growth" element={<RequireEdu><GrowthAnalysis /></RequireEdu>} />
+                <Route path="/materials" element={<RequireEdu><StudyMaterials /></RequireEdu>} />
+                <Route path="/subject/:subjectName" element={<RequireEdu><SubjectPage /></RequireEdu>} />
+                <Route path="/profile" element={<RequireEdu><Profile /></RequireEdu>} />
+                <Route path="/study/upload" element={<RequireEdu><SmartUploadHub /></RequireEdu>} />
+                <Route path="/study/practice-hub" element={<RequireEdu><SmartPracticeHub /></RequireEdu>} />
+                <Route path="/study/planner" element={<RequireEdu><StudyPlanner /></RequireEdu>} />
 
-              <Route path="/study/adaptive" element={<Navigate to="/study/practice-hub" replace />} />
-              <Route path="/study/practice" element={<Navigate to="/study/practice-hub" replace />} />
-              <Route path="/study/exam" element={<Navigate to="/study/practice-hub" replace />} />
-              <Route path="/questions" element={<Navigate to="/study/practice-hub" replace />} />
-              <Route path="/quiz" element={<Navigate to="/study/practice-hub" replace />} />
-              <Route path="/timetable" element={<Navigate to="/study/planner" replace />} />
-              <Route path="/exam-dates" element={<Navigate to="/study/planner" replace />} />
-              <Route path="/study/plan" element={<Navigate to="/study/planner" replace />} />
-              <Route path="/study/explain" element={<Navigate to="/study/upload" replace />} />
+                <Route path="/study/adaptive" element={<Navigate to="/study/practice-hub" replace />} />
+                <Route path="/study/practice" element={<Navigate to="/study/practice-hub" replace />} />
+                <Route path="/study/exam" element={<Navigate to="/study/practice-hub" replace />} />
+                <Route path="/questions" element={<Navigate to="/study/practice-hub" replace />} />
+                <Route path="/quiz" element={<Navigate to="/study/practice-hub" replace />} />
+                <Route path="/timetable" element={<Navigate to="/study/planner" replace />} />
+                <Route path="/exam-dates" element={<Navigate to="/study/planner" replace />} />
+                <Route path="/study/plan" element={<Navigate to="/study/planner" replace />} />
+                <Route path="/study/explain" element={<Navigate to="/study/upload" replace />} />
 
-              <Route path="/study/arena" element={<RequireEdu><CompetitiveArena /></RequireEdu>} />
+                <Route path="/study/arena" element={<RequireEdu><CompetitiveArena /></RequireEdu>} />
 
-              {/* Career World */}
-              <Route path="/career" element={<RequireEdu><CareerShell /></RequireEdu>}>
-                <Route path="dashboard" element={<CareerDashboard />} />
-                <Route path="visualizer" element={<AlgorithmVisualizer />} />
-                <Route path="arena" element={<ProblemArena />} />
-                <Route path="interview" element={<InterviewLab />} />
-                <Route path="socratic" element={<SocraticChat />} />
-                <Route path="roadmap" element={<RoadmapPage />} />
-                <Route path="resume" element={<ResumeHub />} />
-                <Route path="*" element={<Navigate to="/career/dashboard" replace />} />
-              </Route>
+                {/* Career World */}
+                <Route path="/career" element={<RequireEdu><CareerShell /></RequireEdu>}>
+                  <Route path="dashboard" element={<CareerDashboard />} />
+                  <Route path="visualizer" element={<AlgorithmVisualizer />} />
+                  <Route path="arena" element={<ProblemArena />} />
+                  <Route path="interview" element={<InterviewLab />} />
+                  <Route path="socratic" element={<SocraticChat />} />
+                  <Route path="roadmap" element={<RoadmapPage />} />
+                  <Route path="resume" element={<ResumeHub />} />
+                  <Route path="*" element={<Navigate to="/career/dashboard" replace />} />
+                </Route>
 
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </div>
-        </WorldProvider>
-      </BrowserRouter>
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </div>
+          </WorldProvider>
+        </BrowserRouter>
+      </GamificationProvider>
     </AuthProvider>
   );
 }

@@ -1,6 +1,6 @@
 import express from 'express';
 import { authMiddleware } from '../middleware/auth.js';
-import { getOrCreateGamification, getOrCreateDailyQuests } from '../services/gamificationCore.js';
+import { getOrCreateGamification, getOrCreateDailyQuests, claimQuest, listLeaderboard } from '../services/gamificationCore.js';
 
 const router = express.Router();
 
@@ -13,10 +13,23 @@ router.get('/profile', authMiddleware, async (req, res) => {
 /** GET /api/gamification/quests?world=study|career */
 router.get('/quests', authMiddleware, async (req, res) => {
   const world = String(req.query.world || 'study');
-  if (world !== 'study' && world !== 'career') return res.status(400).json({ error: 'Invalid world' });
   const quests = await getOrCreateDailyQuests(req.userId, world);
   res.json({ world, date: new Date().toISOString().split('T')[0], quests });
 });
 
-export default router;
+/** POST /api/gamification/quests/claim */
+router.post('/quests/claim', authMiddleware, async (req, res) => {
+  const { questId } = req.body;
+  if (!questId) return res.status(400).json({ error: 'Missing questId' });
+  const result = await claimQuest(req.userId, questId);
+  if (result.error) return res.status(400).json({ error: result.error });
+  res.json(result);
+});
 
+/** GET /api/gamification/leaderboard */
+router.get('/leaderboard', authMiddleware, async (req, res) => {
+  const lb = await listLeaderboard(100);
+  res.json({ leaderboard: lb });
+});
+
+export default router;

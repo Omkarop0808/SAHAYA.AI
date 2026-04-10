@@ -83,14 +83,14 @@ export default function CompetitiveArena() {
         <DashHeader title="Competitive Arena" />
         <div className="p-8 max-w-4xl mx-auto w-full space-y-6 max-sm:p-4">
           <div className="flex flex-wrap gap-2">
-            {['duel', 'boss', 'squad', 'board'].map((k) => (
+            {['duel', 'boss', 'squad'].map((k) => (
               <button
                 key={k}
                 type="button"
                 onClick={() => setTab(k)}
                 className={`px-4 py-2 rounded-xl font-bold text-sm border-2 cursor-pointer ${tab === k ? 'bg-[#0D0D0D] text-[#FFFF66] border-[#0D0D0D]' : 'bg-white border-[#E0E0E0]'}`}
               >
-                {k === 'board' ? 'Leaderboard' : k}
+                {k}
               </button>
             ))}
           </div>
@@ -164,18 +164,7 @@ export default function CompetitiveArena() {
             </div>
           )}
 
-          {tab === 'board' && (
-            <div className="bg-white border-2 border-[#0D0D0D] rounded-[20px] p-6">
-              <ol className="space-y-2">
-                {leaderboard.map((r, i) => (
-                  <li key={r.userId} className="flex justify-between text-sm">
-                    <span>{i + 1}. {r.name}</span>
-                    <span>{r.xp} XP · Lv.{r.level} · 🔥{r.streak}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
+
         </div>
       </div>
     </div>

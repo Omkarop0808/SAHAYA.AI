@@ -2,21 +2,16 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, LogOut, Edit, ChevronDown, Zap } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useGamification } from '../context/GamificationContext';
 import api from '../utils/api';
 import WorldToggle from './world/WorldToggle';
 
 export default function DashHeader({ title }) {
   const { user, logout } = useAuth();
+  const { profile: xp } = useGamification();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [xp, setXp] = useState(null);
   const [readiness, setReadiness] = useState(null);
-
-  useEffect(() => {
-    api.get('/study/xp')
-      .then(({ data }) => setXp(data))
-      .catch(() => setXp(null));
-  }, []);
 
   useEffect(() => {
     api.get('/study/companion/readiness')

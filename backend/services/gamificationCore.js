@@ -1,25 +1,11 @@
-import { readDB, writeDB } from '../middleware/db.js';
+import { getSupabase } from './supabaseClient.js';
+import { callGemini } from './gemini.js';
+import { readDB } from '../middleware/db.js';
 
-/**
- * Shared gamification platform layer.
- * - Global: XP, level, streak, badges/achievements, ledger
- * - World-specific: daily quests catalogs + completion rules
- *
- * Backwards compatible with existing Study World usage:
- * - `getOrCreateGamification`, `awardXp`, `listLeaderboard` remain callable.
- */
-
-const XP_PER_QUIZ_POINT = 2;
-const XP_LEVEL_STEP = 500;
-
-const COL_PROFILE = 'gamification_profiles';
-const COL_LEDGER = 'gamification_ledger';
-const COL_QUESTS = 'gamification_daily_quests';
-
-export const WORLDS = /** @type {const} */ ({
+export const WORLDS = {
   study: 'study',
   career: 'career',
-});
+};
 
 function nowIso() {
   return new Date().toISOString();
@@ -29,206 +15,346 @@ function todayUTC() {
   return new Date().toISOString().split('T')[0];
 }
 
-function computeLevel(xp) {
-  return Math.max(1, Math.floor((xp || 0) / XP_LEVEL_STEP) + 1);
+export function computeLevel(xp) {
+  let remaining = Number(xp) || 0;
+  let level = 1;
+  while (true) {
+    let req = 500;
+    if (level >= 11 && level <= 25) req = 1000;
+    else if (level >= 26 && level <= 50) req = 2000;
+    else if (level > 50) req = 5000;
+
+    if (remaining >= req) {
+      remaining -= req;
+      level++;
+    } else {
+      break;
+    }
+  }
+  return level;
+}
+
+export function getRankName(xp) {
+  const x = Number(xp) || 0;
+  if (x < 1000) return 'Rookie';
+  if (x < 3000) return 'Explorer';
+  if (x < 6000) return 'Scholar';
+  if (x < 10000) return 'Tactician';
+  if (x < 15000) return 'Elite';
+  if (x < 25000) return 'Master';
+  if (x < 40000) return 'Grandmaster';
+  return 'Legend';
 }
 
 function clamp(n, lo, hi) {
   return Math.max(lo, Math.min(hi, n));
 }
 
-function updateStreak(row) {
-  const d = todayUTC();
-  if (!row.lastStreakDate) {
-    row.streak = 1;
-    row.lastStreakDate = d;
-    return;
-  }
-  if (row.lastStreakDate === d) return;
-  const prev = new Date(`${row.lastStreakDate}T12:00:00Z`);
-  const cur = new Date(`${d}T12:00:00Z`);
-  const diffDays = Math.round((cur - prev) / (24 * 3600 * 1000));
-  if (diffDays === 1) row.streak += 1;
-  else if (diffDays > 1) row.streak = 1;
-  row.lastStreakDate = d;
-}
-
-/**
- * @param {string} userId
- * @returns {Promise<{userId:string,xp:number,level:number,streak:number,lastStreakDate:string|null,badges:string[],updatedAt:string,createdAt:string}>}
- */
 export async function getOrCreateGamification(userId) {
-  const all = await readDB(COL_PROFILE);
-  let row = all.find((r) => r.userId === userId);
-  if (!row) {
-    row = {
-      userId,
-      xp: 0,
-      level: 1,
-      streak: 0,
-      lastStreakDate: null,
-      badges: [],
-      createdAt: nowIso(),
-      updatedAt: nowIso(),
+  const supabase = getSupabase();
+  if (!supabase) return { userId, xp: 0, level: 1, streak: 0, badges: [] };
+
+  const { data: profile } = await supabase
+    .from('gamification_profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (profile) {
+    return {
+      userId: profile.user_id,
+      xp: parseInt(profile.xp),
+      level: profile.level,
+      streak: profile.streak,
+      lastStreakDate: profile.last_streak_date,
+      badges: [] // will fetch from user_badges
     };
-    all.push(row);
-    await writeDB(COL_PROFILE, all);
   }
-  return row;
+
+  const newProfile = {
+    user_id: userId,
+    xp: 0,
+    level: 1,
+    streak: 0,
+    last_streak_date: null,
+    updated_at: nowIso(),
+    created_at: nowIso()
+  };
+
+  await supabase.from('gamification_profiles').insert(newProfile);
+  await updateLeaderboard(userId, 0);
+
+  return {
+    userId,
+    xp: 0,
+    level: 1,
+    streak: 0,
+    lastStreakDate: null,
+    badges: []
+  };
 }
 
-async function appendLedger(entry) {
-  const all = await readDB(COL_LEDGER);
-  all.push(entry);
-  await writeDB(COL_LEDGER, all);
+async function updateLeaderboard(userId, xp) {
+  const supabase = getSupabase();
+  if (!supabase) return;
+  const rank_name = getRankName(xp);
+  
+  await supabase.from('leaderboard').upsert({
+    user_id: userId,
+    xp_total: xp,
+    rank_name,
+    updated_at: nowIso()
+  });
 }
 
-/**
- * Award XP (global) and update streak (global). Optionally attaches a `world`.
- * @param {string} userId
- * @param {number} amount
- * @param {string} reason
- * @param {{ world?: 'study'|'career', meta?: any }} [opts]
- */
 export async function awardXp(userId, amount, reason = 'xp_awarded', opts = {}) {
   const delta = Number(amount) || 0;
   if (delta <= 0) return getOrCreateGamification(userId);
 
-  const all = await readDB(COL_PROFILE);
-  let idx = all.findIndex((r) => r.userId === userId);
-  if (idx === -1) {
-    await getOrCreateGamification(userId);
-    return awardXp(userId, amount, reason, opts);
+  const supabase = getSupabase();
+  if (!supabase) return { userId, xp: 0, level: 1, streak: 0 };
+
+  const profile = await getOrCreateGamification(userId);
+  let newStreak = profile.streak;
+  let lastDate = profile.lastStreakDate;
+  
+  const d = todayUTC();
+  if (lastDate !== d) {
+    if (!lastDate) {
+      newStreak = 1;
+    } else {
+      const prev = new Date(`${lastDate}T12:00:00Z`);
+      const cur = new Date(`${d}T12:00:00Z`);
+      const diffDays = Math.round((cur - prev) / (24 * 3600 * 1000));
+      
+      if (diffDays === 1) {
+        newStreak += 1;
+      } else if (diffDays > 1) {
+        // check streak shields
+        const { data: shieldData } = await supabase.from('streak_shields').select('shields_remaining').eq('user_id', userId).single();
+        if (shieldData && shieldData.shields_remaining > 0) {
+           await supabase.from('streak_shields').update({ shields_remaining: shieldData.shields_remaining - 1, updated_at: nowIso() }).eq('user_id', userId);
+           newStreak += 1; // Used shield!
+        } else {
+           newStreak = 1; // Streak broken
+        }
+      }
+    }
+    lastDate = d;
   }
 
-  const row = { ...all[idx] };
-  updateStreak(row);
-  row.xp = (row.xp || 0) + delta;
-  row.level = computeLevel(row.xp);
-  row.updatedAt = nowIso();
-  all[idx] = row;
-  await writeDB(COL_PROFILE, all);
+  const newXp = profile.xp + delta;
+  const newLevel = computeLevel(newXp);
 
-  await appendLedger({
-    id: `${userId}_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+  await supabase.from('gamification_profiles').update({
+    xp: newXp,
+    level: newLevel,
+    streak: newStreak,
+    last_streak_date: lastDate,
+    updated_at: nowIso()
+  }).eq('user_id', userId);
+
+  await updateLeaderboard(userId, newXp);
+
+  // Auto-progress quests that loosely match the reason
+  if (reason) {
+    const rL = reason.toLowerCase();
+    // Guess world from reason
+    const w = rL.includes('career') || rL.includes('interview') || rL.includes('arena') ? 'career' : 'study';
+    await incrementQuest(userId, w, rL, 1).catch(()=>null);
+  }
+
+  return {
     userId,
-    world: opts.world || null,
-    reason: String(reason || 'xp_awarded').slice(0, 80),
-    deltaXp: delta,
-    createdAt: nowIso(),
-    meta: opts.meta ?? null,
-  });
-
-  return row;
+    xp: newXp,
+    level: newLevel,
+    streak: newStreak,
+    lastStreakDate: lastDate
+  };
 }
 
 export function xpFromQuizScore(scorePercent, totalQuestions) {
-  const base = Math.round((scorePercent / 100) * (totalQuestions || 10) * XP_PER_QUIZ_POINT);
+  const base = Math.round((scorePercent / 100) * (totalQuestions || 10) * 2);
   return clamp(base + 10, 5, 200);
 }
 
-function questIdFor(world, date, slug) {
-  return `${world}_${date}_${slug}`;
-}
+// Generate lazy quests using AI
+async function generateAiQuests(userId, category) {
+  const prompt = `You are the Game Master of SAHAYA.AI. Generate 3 engaging daily quests for a user in the '${category}' world. 
+  1 easy (+50 XP), 1 medium (+100 XP), 1 hard (+150 XP). 
+  Return ONLY a valid JSON array of objects with these exact keys:
+  - "title": short catchy title
+  - "description": 1 sentence what to do
+  - "xpReward": integer (50, 100, or 150)
+  - "target": integer (e.g. 10 for 'do 10 flashcards', 1 for 'complete 1 session')
+  - "slug": short snake_case identifier (e.g. 'study_flashcard_10')`;
 
-function worldQuestCatalog(world) {
-  if (world === WORLDS.career) {
+  try {
+     const text = await callGemini(prompt, 'Create 3 daily quests');
+     const jsonMatch = text.match(/\[[\s\S]*\]/);
+     if (jsonMatch) {
+       return JSON.parse(jsonMatch[0]).slice(0, 3);
+     }
+  } catch (e) {
+     console.error('Quest AI gen err:', e);
+  }
+  
+  // fallback if AI fails
+  if (category === WORLDS.career) {
     return [
-      { slug: 'career_socratic_turns', title: 'Socratic Sprint', description: 'Complete 3 Socratic chat turns', target: 3, xpReward: 18, type: 'career_socratic_turns' },
-      { slug: 'career_visualizer_runs', title: 'Visualizer Warmup', description: 'Run the visualizer once', target: 1, xpReward: 10, type: 'career_visualizer_runs' },
-      { slug: 'career_attempts', title: 'Arena Momentum', description: 'Submit 2 problem attempts', target: 2, xpReward: 16, type: 'career_attempts' },
+      { slug: 'career_socratic_turns', title: 'Socratic Sprint', description: 'Complete 3 Socratic chat turns', target: 3, xpReward: 50 },
+      { slug: 'career_attempts', title: 'Arena Momentum', description: 'Submit 2 problem attempts', target: 2, xpReward: 100 },
+      { slug: 'career_interview_lab', title: 'Mock Master', description: 'Complete 1 Mock Interview session', target: 1, xpReward: 150 },
     ];
   }
-  // default: Study world
   return [
-    { slug: 'study_daily_plan_task', title: 'Plan Executor', description: 'Complete 2 tasks from today’s plan', target: 2, xpReward: 14, type: 'study_daily_plan_task' },
-    { slug: 'study_adaptive_quiz', title: 'Adaptive Grind', description: 'Finish 1 adaptive quiz session', target: 1, xpReward: 16, type: 'study_adaptive_quiz' },
-    { slug: 'study_srs_review', title: 'Spaced Repetition', description: 'Review 10 flashcards', target: 10, xpReward: 12, type: 'study_srs_review' },
+    { slug: 'study_flashcard_weak', title: 'Memory Builder', description: 'Complete 10 flashcards', target: 10, xpReward: 50 },
+    { slug: 'study_adaptive_quiz', title: 'Quiz Whiz', description: 'Pass 1 adaptive quiz', target: 1, xpReward: 100 },
+    { slug: 'study_roadmap_node', title: 'Progression', description: 'Complete 1 roadmap node', target: 1, xpReward: 150 },
   ];
 }
 
-/**
- * Ensure today's quests exist for a world.
- * @param {string} userId
- * @param {'study'|'career'} world
- */
 export async function getOrCreateDailyQuests(userId, world) {
-  const date = todayUTC();
-  const all = await readDB(COL_QUESTS);
-  const existing = all.filter((q) => q.userId === userId && q.world === world && q.date === date);
-  if (existing.length) return existing;
+  const supabase = getSupabase();
+  if (!supabase) return [];
 
-  const catalog = worldQuestCatalog(world);
-  const created = catalog.map((q) => ({
-    id: questIdFor(world, date, q.slug),
-    userId,
-    world,
-    date,
-    slug: q.slug,
+  const dateStr = todayUTC();
+  // Fetch existing quests that haven't expired
+  const { data: existing } = await supabase
+    .from('daily_quests')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('category', world || 'global')
+    .gt('expires_at', nowIso());
+
+  if (existing && existing.length >= 3) {
+    return existing;
+  }
+
+  // Need to generate new quests!
+  // clear old pendings just in case
+  await supabase.from('daily_quests').delete().eq('user_id', userId).eq('category', world);
+
+  const expires_at = new Date();
+  expires_at.setUTCHours(23, 59, 59, 999);
+  
+  const generated = await generateAiQuests(userId, world || 'global');
+  
+  const toInsert = generated.map(q => ({
+    user_id: userId,
     title: q.title,
     description: q.description,
-    type: q.type,
-    target: q.target,
-    current: 0,
-    xpReward: q.xpReward,
-    completed: false,
-    completedAt: null,
-    createdAt: nowIso(),
-    updatedAt: nowIso(),
+    xp_reward: q.xpReward,
+    category: world || 'global',
+    status: 'pending',
+    progress: 0,
+    target: q.target || 1,
+    slug: q.slug,
+    expires_at: expires_at.toISOString(),
   }));
 
-  await writeDB(COL_QUESTS, [...all, ...created]);
-  return created;
+  const { data: inserted, error } = await supabase
+    .from('daily_quests')
+    .insert(toInsert)
+    .select('*');
+
+  if (error) {
+    console.error('[GAMIFICATION] Error inserting quests:', error);
+  }
+
+  return inserted || [];
 }
 
-/**
- * Increment quest progress; awards quest XP when completed.
- * @param {string} userId
- * @param {'study'|'career'} world
- * @param {string} type
- * @param {number} inc
- */
-export async function incrementQuest(userId, world, type, inc = 1) {
-  const delta = Math.max(1, Number(inc) || 1);
-  const date = todayUTC();
-  await getOrCreateDailyQuests(userId, world);
+export async function incrementQuest(userId, world, slugMatch, inc = 1) {
+  const supabase = getSupabase();
+  if (!supabase) return;
 
-  const all = await readDB(COL_QUESTS);
-  let awarded = 0;
-  const next = all.map((q) => {
-    if (q.userId !== userId || q.world !== world || q.date !== date) return q;
-    if (q.type !== type || q.completed) return q;
-    const cur = clamp((q.current || 0) + delta, 0, q.target || 1);
-    const completed = cur >= (q.target || 1);
-    if (completed) awarded += Number(q.xpReward) || 0;
-    return {
-      ...q,
-      current: cur,
-      completed,
-      completedAt: completed ? nowIso() : q.completedAt || null,
-      updatedAt: nowIso(),
-    };
-  });
-  await writeDB(COL_QUESTS, next);
+  const { data: quests } = await supabase
+    .from('daily_quests')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('status', 'pending');
 
-  if (awarded > 0) {
-    await awardXp(userId, awarded, 'daily_quest_completed', { world, meta: { type } });
+  if (!quests) return;
+
+  // We find any quest whose slug partially matches or we apply wildcard increments like "any study session"
+  for (const q of quests) {
+    if (q.slug && q.slug.includes(slugMatch)) {
+       const cur = clamp(q.progress + inc, 0, q.target);
+       let status = 'pending';
+       if (cur >= q.target) {
+          status = 'completed'; // completed but not claimed yet
+       }
+       await supabase.from('daily_quests').update({ progress: cur, status, updated_at: nowIso() }).eq('id', q.id);
+    }
   }
 }
 
-export async function listLeaderboard(limit = 20) {
-  const users = await readDB('users');
-  const gm = await readDB(COL_PROFILE);
-  const merged = gm.map((g) => {
-    const u = users.find((x) => x.id === g.userId);
+export async function claimQuest(userId, questId) {
+   const supabase = getSupabase();
+   if (!supabase) return { error: 'No DB' };
+
+   const { data: q } = await supabase.from('daily_quests').select('*').eq('id', questId).single();
+   if (!q) return { error: 'Quest not found' };
+   if (q.status === 'claimed') return { error: 'Already claimed' };
+   if (q.status !== 'completed' && q.progress < q.target) return { error: 'Quest not finished' };
+
+   // Mark claimed
+   await supabase.from('daily_quests').update({ status: 'claimed' }).eq('id', q.id);
+
+   // Award XP
+   await awardXp(userId, q.xp_reward, 'Quest Claim');
+
+   // Check if all 3 are claimed today
+   const { data: todayQuests } = await supabase.from('daily_quests').select('*').eq('user_id', userId).eq('category', q.category).gt('expires_at', nowIso());
+   
+   if (todayQuests) {
+      const allClaimed = todayQuests.every(x => x.status === 'claimed');
+      if (allClaimed && todayQuests.length >= 3) {
+         // Daily complete bonus
+         await awardXp(userId, 50, 'Daily Quests Complete Bonus');
+         // Grant a streak shield
+         const { data: shieldData } = await supabase.from('streak_shields').select('shields_remaining').eq('user_id', userId).single();
+         const count = shieldData ? shieldData.shields_remaining : 0;
+         await supabase.from('streak_shields').upsert({ user_id: userId, shields_remaining: count + 1, updated_at: nowIso() });
+         return { success: true, bonusTriggered: true, xpDelta: q.xp_reward + 50, shieldAwarded: true };
+      }
+   }
+
+   return { success: true, bonusTriggered: false, xpDelta: q.xp_reward };
+}
+
+export async function listLeaderboard(limit = 100) {
+  const supabase = getSupabase();
+  const users = await readDB('users'); // keep legacy username read
+
+  if (!supabase) return [];
+  const { data: lb } = await supabase
+    .from('leaderboard')
+    .select('*')
+    .order('xp_total', { ascending: false })
+    .limit(limit);
+
+  if (!lb) return [];
+
+  // get levels/streaks
+  const { data: profs } = await supabase.from('gamification_profiles').select('*');
+
+  return lb.map(entry => {
+    const u = users.find(x => x.id === entry.user_id);
+    const p = profs?.find(x => x.user_id === entry.user_id);
+    let fallbackName = 'Student';
+    // If the user_id is the mock name (e.g. "Omkar"), use it!
+    if (entry.user_id && !entry.user_id.includes('-') && entry.user_id !== 'dummy_user') {
+       fallbackName = entry.user_id;
+    }
     return {
-      userId: g.userId,
-      name: u?.name || 'Student',
-      xp: g.xp || 0,
-      level: g.level || 1,
-      streak: g.streak || 0,
+      userId: entry.user_id,
+      name: u?.name || fallbackName,
+      xp: entry.xp_total,
+      level: p?.level || 1,
+      streak: p?.streak || 0,
+      rank: entry.rank_name,
     };
   });
-  merged.sort((a, b) => b.xp - a.xp);
-  return merged.slice(0, limit);
 }
