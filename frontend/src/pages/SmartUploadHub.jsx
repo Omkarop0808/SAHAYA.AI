@@ -550,7 +550,7 @@ export default function SmartUploadHub() {
   const [url, setUrl] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [rawText, setRawText] = useState('');
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [doc, setDoc] = useState(null);
@@ -566,7 +566,9 @@ export default function SmartUploadHub() {
     try {
       const fd = new FormData();
       fd.append('subject', subject);
-      if (file) fd.append('file', file);
+      if (files?.length) {
+         files.forEach(f => fd.append('files', f));
+      }
       if (url.trim()) fd.append('url', url.trim());
       if (youtubeUrl.trim()) fd.append('youtubeUrl', youtubeUrl.trim());
       if (rawText.trim()) fd.append('rawText', rawText.trim());
@@ -621,9 +623,27 @@ export default function SmartUploadHub() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="flex items-center gap-2 text-xs font-bold text-[#555555] mb-2">
-                  <Upload size={14} /> PDF or .txt
+                  <Upload size={14} /> PDF or .txt (Multiple)
                 </label>
-                <input type="file" accept=".pdf,.txt,text/plain,application/pdf" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                <div className="flex flex-col gap-2">
+                  <input type="file" multiple accept=".pdf,.txt,text/plain,application/pdf" className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-[2px] file:border-[#E0E0E0] file:bg-white file:text-sm file:font-bold hover:file:bg-[#F9F9F9] file:cursor-pointer" onChange={(e) => {
+                    const newFiles = Array.from(e.target.files || []);
+                    setFiles(prev => {
+                      const existingNames = new Set(prev.map(f => f.name));
+                      const uniqueNewFiles = newFiles.filter(f => !existingNames.has(f.name));
+                      return [...prev, ...uniqueNewFiles];
+                    });
+                  }} />
+                  {files.length > 0 && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-bold text-[#555555]">Selected {files.length} document{files.length !== 1 ? 's' : ''}:</span>
+                      <ul className="text-[11px] text-gray-500 list-disc pl-4">
+                        {files.map((f, i) => <li key={i} className="truncate max-w-[200px]">{f.name}</li>)}
+                      </ul>
+                      <button type="button" onClick={() => setFiles([])} className="text-[10px] text-red-500 text-left hover:underline mt-1">Clear all files</button>
+                    </div>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="flex items-center gap-2 text-xs font-bold text-[#555555] mb-2">

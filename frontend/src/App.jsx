@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { WorldProvider } from './context/WorldContext';
 import { GamificationProvider } from './context/GamificationContext';
+import { SocketProvider } from './context/SocketContext';
 import WorldRouteTracker from './components/world/WorldRouteTracker';
 import WorldTransitionOverlay from './components/world/WorldTransitionOverlay';
 import LevelUpOverlay from './components/gamification/LevelUpOverlay';
+import GlobalNotifications from './components/GlobalNotifications';
 
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -13,15 +15,12 @@ import Register from './pages/Register';
 import DataCollection from './pages/DataCollection';
 import Dashboard from './pages/Dashboard';
 import GlobalLeaderboard from './pages/GlobalLeaderboard';
-import GrowthAnalysis from './pages/GrowthAnalysis';
 import StudyMaterials from './pages/StudyMaterials';
 import SubjectPage from './pages/SubjectPage';
 import Profile from './pages/Profile';
 import SmartUploadHub from './pages/SmartUploadHub';
 import SmartPracticeHub from './pages/SmartPracticeHub';
 import StudyPlanner from './pages/StudyPlanner';
-
-import CompetitiveArena from './pages/CompetitiveArena';
 
 import CareerShell from './components/career/CareerShell';
 import CareerDashboard from './pages/career/CareerDashboard';
@@ -30,7 +29,6 @@ import ProblemArena from './pages/career/ProblemArena';
 import InterviewLab from './pages/career/InterviewLab';
 import ResumeHub from './pages/career/ResumeHubV2';
 import RoadmapPage from './features/career-roadmap/RoadmapPage';
-import SocraticChat from './pages/career/SocraticChat';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -75,11 +73,13 @@ export default function App() {
   return (
     <AuthProvider>
       <GamificationProvider>
+        <SocketProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <WorldProvider>
             <WorldRouteTracker />
             <WorldTransitionOverlay />
             <LevelUpOverlay />
+            <GlobalNotifications />
             <div id="world-content" className="min-h-screen">
               <Routes>
                 <Route path="/" element={<Landing />} />
@@ -89,7 +89,6 @@ export default function App() {
 
                 <Route path="/dashboard" element={<RequireEdu><Dashboard /></RequireEdu>} />
                 <Route path="/leaderboard" element={<RequireEdu><GlobalLeaderboard /></RequireEdu>} />
-                <Route path="/growth" element={<RequireEdu><GrowthAnalysis /></RequireEdu>} />
                 <Route path="/materials" element={<RequireEdu><StudyMaterials /></RequireEdu>} />
                 <Route path="/subject/:subjectName" element={<RequireEdu><SubjectPage /></RequireEdu>} />
                 <Route path="/profile" element={<RequireEdu><Profile /></RequireEdu>} />
@@ -107,15 +106,12 @@ export default function App() {
                 <Route path="/study/plan" element={<Navigate to="/study/planner" replace />} />
                 <Route path="/study/explain" element={<Navigate to="/study/upload" replace />} />
 
-                <Route path="/study/arena" element={<RequireEdu><CompetitiveArena /></RequireEdu>} />
-
                 {/* Career World */}
                 <Route path="/career" element={<RequireEdu><CareerShell /></RequireEdu>}>
                   <Route path="dashboard" element={<CareerDashboard />} />
                   <Route path="visualizer" element={<AlgorithmVisualizer />} />
                   <Route path="arena" element={<ProblemArena />} />
                   <Route path="interview" element={<InterviewLab />} />
-                  <Route path="socratic" element={<SocraticChat />} />
                   <Route path="roadmap" element={<RoadmapPage />} />
                   <Route path="resume" element={<ResumeHub />} />
                   <Route path="*" element={<Navigate to="/career/dashboard" replace />} />
@@ -126,6 +122,7 @@ export default function App() {
             </div>
           </WorldProvider>
         </BrowserRouter>
+        </SocketProvider>
       </GamificationProvider>
     </AuthProvider>
   );

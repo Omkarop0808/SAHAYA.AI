@@ -1,5 +1,7 @@
-import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Sparkles, Trophy, Wand2, FileBadge, Route, MessageSquare } from 'lucide-react';
+import { useState } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Sparkles, Trophy, Wand2, FileBadge, Route, User, LogOut, Edit, ChevronDown } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import WorldToggle from '../world/WorldToggle';
 import '../../styles/career.css';
 
@@ -8,23 +10,30 @@ const nav = [
   { to: '/career/visualizer', icon: Sparkles, label: 'Algorithm Visualizer' },
   { to: '/career/arena', icon: Trophy, label: 'DSA Arena + Duels' },
   { to: '/career/interview', icon: Wand2, label: 'Interview Lab' },
-  { to: '/career/socratic', icon: MessageSquare, label: 'Socratic Chat' },
   { to: '/career/roadmap', icon: Route, label: 'Career Roadmap' },
   { to: '/career/resume', icon: FileBadge, label: 'Resume Hub' },
 ];
 
 export default function CareerShell() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   return (
     <div data-world="career" className="flex min-h-screen">
-      <aside className="w-80 max-md:hidden flex-shrink-0 h-screen sticky top-0 px-5 py-6 border-r border-[rgba(139,92,246,0.2)]">
-        <div className="flex items-center justify-between gap-3 mb-6">
+      <aside className="w-80 max-md:hidden flex-shrink-0 h-screen sticky top-0 flex flex-col px-5 py-6 border-r border-[rgba(139,92,246,0.2)]">
+        <div className="flex items-center gap-3 mb-6">
           <div className="min-w-0">
             <div className="career-kicker">Career</div>
             <div className="font-display font-extrabold text-[22px] truncate text-[var(--career-text)]">
               Technical Prep Suite
             </div>
           </div>
-          <WorldToggle compact />
         </div>
 
         <nav className="flex flex-col gap-1.5" style={{ rowGap: '6px' }}>
@@ -46,7 +55,7 @@ export default function CareerShell() {
           ))}
         </nav>
 
-        <div className="mt-6 rounded-[12px] border border-[rgba(139,92,246,0.3)] bg-[#111118] p-4 shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
+        <div className="mt-auto rounded-[12px] border border-[rgba(139,92,246,0.3)] bg-[#111118] p-4 shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
           <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55 mb-2">Hint</div>
           <p className="text-sm text-white/75 leading-relaxed">
             Career World actions earn XP and improve your readiness score. Use the world toggle for the cinematic transition.
@@ -65,8 +74,54 @@ export default function CareerShell() {
               <div className="font-display font-extrabold text-lg truncate text-[var(--career-text)]">Prep Dashboard</div>
             </div>
           </div>
-          <div className="md:hidden">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/leaderboard')}
+              className="flex items-center justify-center w-10 h-10 rounded-[10px] border border-[rgba(139,92,246,0.35)] bg-[linear-gradient(135deg,rgba(139,92,246,0.1),rgba(6,182,212,0.05))] text-[#06B6D4] hover:shadow-[0_0_15px_rgba(139,92,246,0.25)] transition-all cursor-pointer relative"
+              title="World Leaderboard"
+            >
+              <Trophy size={18} className="stroke-[2px] opacity-90" />
+            </button>
             <WorldToggle compact />
+            
+            <div
+              className="relative flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-[12px] border border-[rgba(139,92,246,0.25)] bg-[#111118] hover:border-[rgba(139,92,246,0.5)] transition-colors select-none"
+              onClick={() => setOpen(!open)}
+            >
+              <div className="w-7 h-7 bg-[linear-gradient(135deg,#8B5CF6,#06B6D4)] rounded-full flex items-center justify-center font-display font-bold text-xs text-white flex-shrink-0">
+                {user?.name?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <span className="text-sm font-semibold text-[#E2E8F0] tracking-wide">{user?.name || 'User'}</span>
+              <ChevronDown size={14} className={`text-white/60 transition-transform ${open ? 'rotate-180' : ''}`} />
+
+              {open && (
+                <div className="absolute top-[calc(100%+8px)] right-0 w-56 bg-[#0A0A0F] border border-[rgba(139,92,246,0.3)] rounded-[12px] overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)] animate-fadeUp z-50">
+                  <div className="px-4 py-3 bg-[linear-gradient(180deg,rgba(139,92,246,0.05),transparent)] border-b border-[rgba(139,92,246,0.15)]">
+                    <p className="font-semibold text-sm text-white/90">{user?.name}</p>
+                    <p className="text-xs text-white/50 mt-0.5">{user?.email}</p>
+                  </div>
+                  <button
+                    className="flex items-center gap-2 w-full px-4 py-2.5 bg-transparent border-none text-sm text-[#E2E8F0] text-left hover:bg-white/[0.04] transition-colors"
+                    onClick={() => { navigate('/profile'); setOpen(false); }}
+                  >
+                    <User size={14} className="opacity-70" /> My Profile
+                  </button>
+                  <button
+                    className="flex items-center gap-2 w-full px-4 py-2.5 bg-transparent border-none text-sm text-[#E2E8F0] text-left hover:bg-white/[0.04] transition-colors"
+                    onClick={() => { navigate('/profile?edit=true'); setOpen(false); }}
+                  >
+                    <Edit size={14} className="opacity-70" /> Edit Edu Data
+                  </button>
+                  <div className="h-px bg-[rgba(139,92,246,0.15)] my-1" />
+                  <button
+                    className="flex items-center gap-2 w-full px-4 py-2.5 bg-transparent border-none text-sm text-red-400 text-left hover:bg-white/[0.04] transition-colors"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={14} className="opacity-70" /> Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

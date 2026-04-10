@@ -24,7 +24,6 @@ import {
 const TABS = [
   { key: 'daily', label: 'Daily Plan', icon: CalendarDays },
   { key: 'schedule', label: 'AI Schedule', icon: Sparkles },
-  { key: 'exams', label: 'Exam Dates', icon: CalendarPlus },
 ];
 
 const tabPanelVariants = {
@@ -312,7 +311,7 @@ function AIScheduleTab() {
     setLoadingSchedule(true);
     setErrorSchedule('');
     try {
-      await api.post('/study/goals', { title: goalTitle.trim(), deadline: goalDeadline || null });
+      await api.post('/study/goals', { title: goalTitle.trim(), deadline: goalDeadline || null, hours: hoursPerDay });
       setGoalTitle('');
       setGoalDeadline('');
       await loadGoals();
@@ -483,7 +482,7 @@ function AIScheduleTab() {
         <p className="text-sm text-[#555555] mb-5">AI turns your big goal into atomic, weekly sprints incorporating the subjects and predictions above.</p>
 
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-[13px] font-semibold block mb-2">Subject / Goal</label>
               <input value={goalTitle} onChange={(e) => setGoalTitle(e.target.value)} placeholder="e.g. Master algorithms" className="w-full border-2 border-[#E0E0E0] rounded-[10px] px-4 py-3 text-[15px] outline-none focus:border-[#87CEEB]" />
@@ -491,6 +490,10 @@ function AIScheduleTab() {
             <div>
               <label className="text-[13px] font-semibold block mb-2">Deadline (Optional)</label>
               <input type="date" value={goalDeadline} onChange={(e) => setGoalDeadline(e.target.value)} className="w-full border-2 border-[#E0E0E0] rounded-[10px] px-4 py-3 text-[15px] outline-none focus:border-[#87CEEB]" />
+            </div>
+            <div>
+              <label className="text-[13px] font-semibold block mb-2">Daily Study Hours</label>
+              <input type="number" min={1} max={24} value={hoursPerDay} onChange={(e) => handleHoursChange(Number(e.target.value) || 3)} className="w-full border-2 border-[#E0E0E0] rounded-[10px] px-4 py-3 text-[15px] outline-none focus:border-[#87CEEB]" />
             </div>
           </div>
           
@@ -828,7 +831,7 @@ export default function StudyPlanner() {
       <div className="flex-1 flex flex-col min-w-0 bg-[#F9F9F9]">
         <DashHeader title="Study Planner" />
         <div className="p-8 flex-1 max-w-3xl w-full mx-auto max-sm:p-4 space-y-6">
-          <p className="text-sm text-[#555555]">Your daily plan, AI schedule, and exam dates \u2014 all in one place</p>
+          <p className="text-sm text-[#555555]">Your daily plan and AI schedule — all in one place</p>
 
           {/* ── Pill tab bar ── */}
           <div className="flex flex-wrap gap-1.5 bg-white border-2 border-[#0D0D0D] rounded-[16px] p-1.5">

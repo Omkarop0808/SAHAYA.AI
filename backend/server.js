@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import http from 'http';
+import { Server } from 'socket.io';
+
 
 // Ensure .env is loaded from the backend folder even when server
 // is started via "node backend/server.js" from the monorepo root.
@@ -82,7 +85,53 @@ app.use((err, _, res, __) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-const server = app.listen(PORT, () => {
+const httpServer = http.createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:5005',
+    credentials: true,
+  }
+});
+
+let gdLobby = [];
+
+io.on('connection', (socket) => {
+  socket.on('join_gd_lobby', (data) => {
+    gdLobby.push({ socketId: socket.id, ...data });
+    
+    socket.broadcast.emit('gd_lobby_notification', {
+       message: `${data.name || 'A user'} is searching for GD members. Join now!`
+    });
+
+    const getWaitlist = () => gdLobby.map(u => ({ name: u.name, topic: u.topic, requestedSize: u.requestedSize }));
+    io.emit('lobby_update', getWaitlist());
+
+    if (gdLobby.length >= data.requestedSize) {
+       const roomParticipants = gdLobby.splice(0, data.requestedSize);
+       const roomId = `gd_room_${Date.now()}`;
+       
+       roomParticipants.forEach(p => {
+          io.to(p.socketId).emit('gd_match_found', { roomId, participants: roomParticipants });
+       });
+       io.emit('lobby_update', getWaitlist());
+    }
+  });
+
+  socket.on('disconnect', () => {
+    gdLobby = gdLobby.filter(user => user.socketId !== socket.id);
+    const currentWaitlist = gdLobby.map(u => ({ name: u.name, topic: u.topic, requestedSize: u.requestedSize }));
+    io.emit('lobby_update', currentWaitlist);
+  });
+
+  socket.on('leave_gd_lobby', () => {
+    gdLobby = gdLobby.filter(user => user.socketId !== socket.id);
+    const currentWaitlist = gdLobby.map(u => ({ name: u.name, topic: u.topic, requestedSize: u.requestedSize }));
+    io.emit('lobby_update', currentWaitlist);
+  });
+});
+
+const server = httpServer.listen(PORT, () => {
   console.log(`\n🚀 Intelligent Learning AI System (Study) Backend → http://localhost:${PORT}`);
   console.log(`📁 Data stored in: ./data/`);
   console.log(`⚡ Groq: ${process.env.GROQ_API_KEY ? '✅ Set' : '❌ Missing (optional)'}`);

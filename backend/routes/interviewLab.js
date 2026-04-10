@@ -700,4 +700,64 @@ router.get('/sessions/:id', authMiddleware, (req, res) => {
   }
 });
 
+/* ── POST /api/interview/analyze-gd (MULTIPLAYER) ──────────── */
+router.post('/analyze-gd', authMiddleware, async (req, res) => {
+  try {
+    const { transcript, faceMetrics, duration, topic } = req.body;
+
+    const systemPrompt = `You are an expert HR Interviewer and Group Discussion Moderator.
+Analyze the following student's performance in a recent Live Group Discussion.
+
+**GD Topic:** ${topic || 'General Discussion'}
+**Total Session Time:** ${duration || 10} mins
+
+**Student Transcript (Timestamps included):**
+${JSON.stringify(transcript, null, 2)}
+
+**Average Facial Emotion Metrics (0 to 1):**
+${JSON.stringify(faceMetrics, null, 2)}
+
+Based on this data, generate a highly detailed JSON report.
+Penalize if the speaking time is too low (silent participant) or too high (dominating).
+Validate the quality of the points in the transcript.
+
+Output ONLY valid JSON without markdown wrapping:
+{
+  "overallScore": 85,
+  "metrics": {
+    "communicationSkills": "Analysis of their speaking time and point delivery.",
+    "bodyLanguage": "Analysis of their facial expressions and confidence.",
+    "relevance": "How relevant their spoken points were to the main topic."
+  },
+  "strengths": ["...", "...", "..."],
+  "weaknesses": ["...", "...", "..."],
+  "actionableAdvice": ["...", "..."]
+}`;
+
+    const userPrompt = 'Analyze this live GD data and generate the JSON report.';
+    let report;
+    try {
+      report = await callGeminiJSON(systemPrompt, userPrompt, 1024);
+    } catch (err) {
+      console.error('[interview/analyze-gd] Gemini error:', err.message);
+      report = {
+        overallScore: 70,
+        metrics: {
+          communicationSkills: "Could not analyze due to AI timeout.",
+          bodyLanguage: "Based on data, maintaining eye contact is recommended.",
+          relevance: "Ensure points are tightly related to the topic."
+        },
+        strengths: ["Completed the GD"],
+        weaknesses: ["AI analysis failed"],
+        actionableAdvice: ["Try again when network is stable."]
+      };
+    }
+
+    res.json({ report });
+  } catch (err) {
+    console.error('[interview/analyze-gd] Error:', err);
+    res.status(500).json({ error: 'Failed to generate GD report.' });
+  }
+});
+
 export default router;

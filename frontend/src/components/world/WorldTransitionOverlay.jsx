@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import gsap from 'gsap';
 import { useWorld } from '../../context/WorldContext';
-import BoatScene from './three/BoatScene';
+import AbstractTransition from './three/AbstractTransition';
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -93,12 +93,12 @@ export default function WorldTransitionOverlay() {
     return {
       label: 'Returning to Study World',
       sub: 'Restoring your learning space…',
-      bgA: '#ECFDF5',
-      bgB: '#E0F2FE',
+      bgA: '#022c22', // Very dark emerald
+      bgB: '#0f172a', // Dark slate
       accent: '#8B5CF6',
-      accent2: '#059669',
+      accent2: '#10b981',
       foldFrom: 'linear-gradient(145deg, rgba(17,17,24,0.96) 0%, rgba(88,28,135,0.45) 45%, rgba(10,10,15,0.98) 100%)',
-      foldTo: 'linear-gradient(155deg, rgba(255,255,255,0.97) 0%, rgba(236,253,245,0.92) 50%, rgba(224,242,254,0.95) 100%)',
+      foldTo: 'linear-gradient(155deg, rgba(6,78,59,0.97) 0%, rgba(2,44,34,0.92) 50%, rgba(15,23,42,0.95) 100%)',
     };
   }, [toCareer]);
 
@@ -139,12 +139,8 @@ export default function WorldTransitionOverlay() {
     const worldContent = worldContentRef.current;
     if (!root || !fold || !bar) return;
 
-    const foldFrom = toCareer
-      ? 'linear-gradient(145deg, rgba(236,253,245,0.95) 0%, rgba(224,242,254,0.88) 45%, rgba(15,23,42,0.92) 100%)'
-      : 'linear-gradient(145deg, rgba(17,17,24,0.96) 0%, rgba(88,28,135,0.45) 45%, rgba(10,10,15,0.98) 100%)';
-    const foldTo = toCareer
-      ? 'linear-gradient(155deg, rgba(10,10,15,0.98) 0%, rgba(20,83,45,0.35) 55%, rgba(10,10,15,0.99) 100%)'
-      : 'linear-gradient(155deg, rgba(255,255,255,0.97) 0%, rgba(236,253,245,0.92) 50%, rgba(224,242,254,0.95) 100%)';
+    const foldFrom = palette.foldFrom;
+    const foldTo = palette.foldTo;
 
     setPhase('fold');
     tlRef.current?.kill();
@@ -215,7 +211,7 @@ export default function WorldTransitionOverlay() {
         gsap.set(worldContent, { filter: 'none', scale: 1 });
       }
     };
-  }, [isOpen, targetWorld, refsReady, completeWorldSwitch, endWorldSwitch, navigate, reducedMotion, toCareer]);
+  }, [isOpen, targetWorld, refsReady, completeWorldSwitch, endWorldSwitch, navigate, reducedMotion, toCareer, palette]);
 
   return (
     <AnimatePresence>
@@ -250,7 +246,7 @@ export default function WorldTransitionOverlay() {
           </div>
 
           <div className="absolute inset-0 pointer-events-none">
-            <BoatScene
+            <AbstractTransition
               accent={palette.accent}
               accent2={palette.accent2}
               variant={toCareer ? 'vortex' : 'bloom'}
@@ -283,35 +279,28 @@ export default function WorldTransitionOverlay() {
             </div>
           </div>
 
-          <div className="pointer-events-none absolute inset-0 z-[1] flex items-start justify-center pt-[18vh] px-6">
+          <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center -mt-16 px-6">
             <motion.div
-              initial={{ scale: 0.94, opacity: 0.95 }}
+              initial={{ scale: 0.9, opacity: 0, y: 15 }}
               animate={{
-                scale: phase === 'burst' || phase === 'travel' ? 1 : 0.98,
+                scale: phase === 'burst' || phase === 'travel' ? 1.05 : 1,
                 opacity: 1,
+                y: 0,
               }}
-              transition={{ duration: reducedMotion ? 0.12 : 0.2 }}
-              className="max-w-lg rounded-2xl border px-8 py-6 text-center shadow-xl"
-              style={{
-                borderColor: `${palette.accent}55`,
-                background: toCareer ? 'rgba(10,10,15,0.82)' : 'rgba(255,255,255,0.92)',
-                backdropFilter: 'blur(12px)',
+              transition={{ 
+                duration: reducedMotion ? 0.12 : 0.6,
+                ease: "easeOut"
               }}
+              className="flex flex-col items-center text-center drop-shadow-2xl"
             >
-              <div className="text-[11px] font-extrabold uppercase tracking-[0.28em]" style={{ color: palette.accent2 }}>
-                World switch
+              <div className="text-[12px] font-extrabold uppercase tracking-[0.35em] mb-3" style={{ color: palette.accent2, textShadow: `0 0 15px ${palette.accent}55` }}>
+                Dimensional Warp
               </div>
               <div
-                className="mt-2 font-display text-2xl font-extrabold"
-                style={{ color: toCareer ? '#F8FAFC' : '#0f172a' }}
+                className="font-display text-4xl sm:text-6xl tracking-tight font-extrabold transparent drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]"
+                style={{ color: '#FFFFFF' }}
               >
                 {palette.label}
-              </div>
-              <div
-                className="mt-1 text-sm"
-                style={{ color: toCareer ? 'rgba(248,250,252,0.72)' : 'rgba(15,23,42,0.65)' }}
-              >
-                {palette.sub}
               </div>
             </motion.div>
           </div>

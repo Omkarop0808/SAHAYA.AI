@@ -19,10 +19,7 @@ const navItems = [
   { to: '/study/upload', icon: Upload,     label: 'Study Studio' },
   { to: '/study/planner', icon: CalendarDays, label: 'Study Planner' },
   { to: '/study/practice-hub', icon: Sparkles, label: 'Smart Practice', badge: 'NEW' },
-  { to: '/leaderboard', icon: Trophy, label: 'World Leaderboard', badge: 'HOT' },
-  { to: '/study/arena', icon: Trophy,       label: 'Arena' },
   { to: '/materials',   icon: BookOpen,   label: 'Study Materials' },
-  { to: '/growth',      icon: TrendingUp, label: 'Growth Analysis' },
 ];
 
 export default function Sidebar() {
@@ -72,12 +69,6 @@ export default function Sidebar() {
 
       {/* Bottom section */}
       <div className="flex flex-col gap-2 mt-4">
-        <div className="bg-white/[0.06] border border-white/10 rounded-[14px] p-3.5 mb-1">
-          <span className="text-lg block mb-1">🤖</span>
-          <p className="text-[11px] text-white/45 leading-relaxed">
-            Take a <strong className="text-white/60">Quiz</strong> to personalise your AI timetable predictions!
-          </p>
-        </div>
 
         <NavLink to="/profile"
           className={({ isActive }) =>

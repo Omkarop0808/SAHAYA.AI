@@ -15,7 +15,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { title, deadline } = req.body;
+    const { title, deadline, hours } = req.body;
     if (!title?.trim()) return res.status(400).json({ error: 'title required' });
     const system = `Output ONLY JSON: {
   "weekly_sprints": [
@@ -23,13 +23,14 @@ router.post('/', authMiddleware, async (req, res) => {
       "week_index": 1,
       "theme": "string",
       "tasks": [
-        { "id": "t1", "title": "string", "day": "mon|tue|wed|thu|fri|sat|sun", "resource_type": "quiz|video|hub|subject", "resource_hint": "path or subject name" }
+        { "id": "t1", "title": "string", "day": "mon|tue|wed|thu|fri|sat|sun", "resource_type": "quiz|video|hub|subject", "resource_hint": "path or subject name", "estimated_minutes": 30 }
       ]
     }
   ]
 }
-Provide 2-4 weekly sprints; 3-6 tasks per sprint. resource_type must be one of quiz|video|hub|subject.`;
-    const user = `Goal: ${title}\nDeadline: ${deadline || 'flexible'}\nBreak into achievable weekly sprints with tasks linking to app areas (quiz, hub upload, subject notebook).`;
+Provide 2-4 weekly sprints. Scale the number of tasks in each sprint strictly according to the student's available daily hours.
+They will study for ${hours || 3} hours per day. resource_type must be one of quiz|video|hub|subject.`;
+    const user = `Goal: ${title}\nDeadline: ${deadline || 'flexible'}\nBreak into achievable weekly sprints with tasks linking to app areas (quiz, hub upload, subject notebook).\nIMPORTANT: DO NOT use generic task names like "Complete Quiz 1". You MUST use highly specific subtopic names based on the goal (e.g. "Take a quiz on Binary Search Trees" or "Watch a video on QuickSort algorithms").`;
     const parsed = await callGeminiJSON(system, user, 4096);
     const goal = {
       id: uuidv4(),

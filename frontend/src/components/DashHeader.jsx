@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, LogOut, Edit, ChevronDown, Zap } from 'lucide-react';
+import { User, LogOut, Edit, ChevronDown, Zap, Trophy } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useGamification } from '../context/GamificationContext';
 import api from '../utils/api';
@@ -44,6 +44,13 @@ export default function DashHeader({ title }) {
       </div>
 
       <div className="flex items-center gap-3">
+        <button
+          onClick={() => navigate('/leaderboard')}
+          className="flex items-center justify-center w-10 h-10 rounded-[10px] bg-[#FFFF66] border-2 border-[#0D0D0D] text-[#0D0D0D] hover:-translate-y-0.5 hover:shadow-[2px_2px_0_#0D0D0D] transition-all cursor-pointer relative"
+          title="World Leaderboard"
+        >
+          <Trophy size={18} className="stroke-[2.5px]" />
+        </button>
         <WorldToggle compact />
         <div
         className="relative flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-[8px] border-2 border-[#E0E0E0] hover:border-[#0D0D0D] transition-colors select-none"

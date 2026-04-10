@@ -9,19 +9,21 @@ import {
   CheckCircle2, FileText, Calendar, Play, UserCircle2, Timer, MicOff
 } from 'lucide-react';
 
+import GDLobby from './components/GDLobby';
+
 /* ─── constants ─── */
 const TYPES = [
   { id: 'Technical Interview', icon: Terminal, desc: 'DSA, system design, CS fundamentals, frameworks' },
   { id: 'HR / Behavioral', icon: Users, desc: 'Tell me about yourself, strengths/weaknesses, situational' },
   { id: 'Domain-Specific', icon: Target, desc: 'Based on your primary subject from your profile' },
   { id: 'Mock Placement', icon: Building2, desc: 'Mixed: HR + Technical + Aptitude (most realistic)' },
-  { id: 'Group Discussion', icon: MessageSquare, desc: 'AI generates a topic, you argue a position' },
+  { id: 'Group Discussion', icon: Users, desc: 'Real-time GD with other students, monitored by AI' },
   { id: 'Case Study', icon: BarChart, desc: 'Business/engineering scenario, structured problem solving' },
 ];
 const DIFFICULTIES = ['Fresher', 'Mid-Level', 'Senior'];
 const DURATIONS = [{ label: '10 min (~5 Qs)', val: 10 }, { label: '20 min (~10 Qs)', val: 20 }, { label: '30 min (~15 Qs)', val: 30 }];
 const COMPANIES = ['FAANG', 'Startup', 'MNC', 'PSU', 'Consulting'];
-const GD_PARTICIPANT_OPTIONS = [3, 4, 5, 6];
+const GD_PARTICIPANT_OPTIONS = [1, 2, 3, 4, 5, 6];
 const GD_DURATIONS = [{ label: '5 min', val: 5 }, { label: '10 min', val: 10 }, { label: '15 min', val: 15 }];
 const GD_COLORS = ['#6366f1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899'];
 const GD_VOICE_PROFILES = [
@@ -363,61 +365,13 @@ export default function InterviewLab() {
       const faceOk = await loadFaceApi();
       setFaceReady(faceOk);
 
-      /* ─── GROUP DISCUSSION BRANCH ─── */
+      /* ─── GROUP DISCUSSION BRANCH (LIVE MULTIPLAYER) ─── */
       if (config.type === 'Group Discussion') {
-        setLoadingMsg('Setting up Group Discussion...');
-        const callWithTimeout = async (attempt = 1) => {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 30000);
-          try {
-            const resp = await api.post('/interview/start', { ...config, subject }, { signal: controller.signal });
-            clearTimeout(timeout);
-            return resp.data;
-          } catch (err) {
-            clearTimeout(timeout);
-            if (attempt < 2) { setLoadingMsg('Retrying... AI is warming up...'); return callWithTimeout(attempt + 1); }
-            throw err;
-          }
-        };
-        const data = await callWithTimeout();
-        setSessionId(data.sessionId);
-        sessionIdRef.current = data.sessionId;
-        setGdTopic(data.gdTopic);
-        setGdParticipants(data.gdParticipants);
-        setGdTranscript([]);
-
-        // Add moderator's opening to transcript
-        const initialTranscript = [{ speaker: 'Moderator', text: data.openingStatement, isUser: false, timestamp: new Date().toISOString() }];
-        // Add first participant's response
-        if (data.firstResponse) {
-          const firstP = data.gdParticipants[data.firstResponse.participantIndex || 0];
-          initialTranscript.push({ speaker: firstP?.name || 'Participant', text: data.firstResponse.text, isUser: false, timestamp: new Date().toISOString() });
-        }
-        setGdTranscript(initialTranscript);
-        setPhase('gd');
+        setPhase('gd_multiplayer_lobby');
         setLoadingMsg('');
-
-        // Speak the moderator's opening
-        speakText(data.openingStatement, () => setIsSpeaking(true), () => {
-          setIsSpeaking(false);
-          // Then speak the first participant
-          if (data.firstResponse) {
-            const pIdx = data.firstResponse.participantIndex || 0;
-            setGdActiveSpeaker(data.gdParticipants[pIdx]?.name);
-            speakGD(data.firstResponse.text, pIdx, () => setIsSpeaking(true), () => {
-              setIsSpeaking(false);
-              setGdActiveSpeaker(null);
-              // Start continuous mic + round timer after initial speeches
-              startGDMic();
-              resetGDSilenceTimer(8000);
-            }, muted);
-          } else {
-            startGDMic();
-            resetGDSilenceTimer(8000);
-          }
-        }, muted);
         return;
       }
+
 
       /* ─── STANDARD INTERVIEW BRANCH ─── */
       setLoadingMsg('Generating first question...');
@@ -870,16 +824,20 @@ export default function InterviewLab() {
         />
       )}
 
-      {phase === 'gd' && (
-        <GDRoom
-          gdTopic={gdTopic} gdParticipants={gdParticipants}
-          gdTranscript={gdTranscript} gdActiveSpeaker={gdActiveSpeaker}
-          timer={timer} fmtTime={fmtTime}
-          isSpeaking={isSpeaking} isRecording={isRecording}
-          transcript={transcript} muted={muted} setMuted={setMuted}
-          cameraReady={cameraReady} videoRef={videoRef} faceReady={faceReady}
-          faceMetrics={faceMetrics}
-          onEndClick={() => setShowEndModal(true)}
+
+      {phase === 'gd_multiplayer_lobby' && (
+        <GDLobby 
+          config={config} 
+          eduData={eduData} 
+          onEndGd={(multiplayerReport) => {
+              if (multiplayerReport) {
+                setReport(multiplayerReport);
+                setConfig({ ...config, type: 'Group Discussion' });
+                setPhase('report');
+             } else {
+                setPhase('setup');
+             }
+          }} 
         />
       )}
 

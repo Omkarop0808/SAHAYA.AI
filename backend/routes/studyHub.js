@@ -15,29 +15,51 @@ const upload = multer({
   limits: { fileSize: 15 * 1024 * 1024 },
 });
 
-async function gatherText({ file, body }) {
-  if (file?.buffer?.length) {
-    const mime = file.mimetype || '';
-    if (mime === 'application/pdf' || file.originalname?.toLowerCase().endsWith('.pdf')) {
-      return { text: await extractPdfText(file.buffer), sourceType: 'pdf' };
+async function gatherText({ files, file, body }) {
+  let combinedText = '';
+  let sourceTypeCount = { pdf: 0, text_file: 0, url: 0, youtube: 0, paste: 0 };
+  
+  const fileArray = files || (file ? [file] : []);
+  for (const f of fileArray) {
+    if (f?.buffer?.length) {
+      const mime = f.mimetype || '';
+      combinedText += `\n\n--- Document: ${f.originalname || 'File'} ---\n\n`;
+      if (mime === 'application/pdf' || f.originalname?.toLowerCase().endsWith('.pdf')) {
+        const text = await extractPdfText(f.buffer);
+        combinedText += text;
+        sourceTypeCount.pdf++;
+      } else if (mime.startsWith('text/') || f.originalname?.toLowerCase().endsWith('.txt')) {
+        combinedText += f.buffer.toString('utf8');
+        sourceTypeCount.text_file++;
+      } else {
+        throw new Error(`Unsupported file type: ${f.originalname}`);
+      }
     }
-    if (mime.startsWith('text/') || file.originalname?.toLowerCase().endsWith('.txt')) {
-      return { text: file.buffer.toString('utf8'), sourceType: 'text_file' };
-    }
-    throw new Error('Unsupported file type (use PDF or .txt)');
   }
+
   if (body.rawText?.trim()) {
-    return { text: body.rawText.trim(), sourceType: 'paste' };
+    combinedText += `\n\n--- Raw Text ---\n\n` + body.rawText.trim();
+    sourceTypeCount.paste++;
   }
   if (body.url?.trim()) {
     const t = await scrapeUrlToText(body.url.trim());
-    return { text: t, sourceType: 'url' };
+    combinedText += `\n\n--- Article Content ---\n\n` + t;
+    sourceTypeCount.url++;
   }
+  let meta = null;
   if (body.youtubeUrl?.trim()) {
     const ctx = await buildYoutubeStudyContext(body.youtubeUrl.trim());
-    return { text: ctx.text, sourceType: 'youtube', meta: ctx };
+    combinedText += `\n\n--- YouTube Video ---\n\n` + ctx.text;
+    sourceTypeCount.youtube++;
+    if (!meta) meta = ctx;
   }
-  return { text: '', sourceType: null };
+
+  if (!combinedText) {
+     return { text: '', sourceType: null, meta: null };
+  }
+
+  const activeSourceType = Object.entries(sourceTypeCount).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+  return { text: combinedText, sourceType: fileArray.length > 1 ? 'multiple' : activeSourceType, meta };
 }
 
 /** POST /api/study/hub/extract — text only (for Subject page PDF upload) */
@@ -60,10 +82,10 @@ router.post('/extract', authMiddleware, upload.single('file'), async (req, res) 
 });
 
 /** POST /api/study/hub/process — full Smart Upload pipeline */
-router.post('/process', authMiddleware, upload.single('file'), async (req, res) => {
+router.post('/process', authMiddleware, upload.array('files', 10), async (req, res) => {
   try {
     const subject = (req.body.subject || 'General').trim();
-    const { text, sourceType, meta } = await gatherText({ file: req.file, body: req.body });
+    const { text, sourceType, meta } = await gatherText({ files: req.files, file: req.file, body: req.body });
     if (!text?.trim()) {
       return res.status(400).json({ error: 'Provide file, rawText, url, or youtubeUrl' });
     }

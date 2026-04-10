@@ -45,7 +45,7 @@ export async function generateSmartUploadBundle(subject, fullText) {
 
   const user = `Subject/topic: ${subject}\n\n${videoHint}\n\nContent:\n${fullText.slice(0, 80_000)}`;
 
-  const bundle = await callGeminiJSON(BUNDLE_SCHEMA_HINT, user, 8192);
+  const bundle = await callGeminiJSON(BUNDLE_SCHEMA_HINT, user, { maxTokens: 8192, skipGroq: true });
 
   const enrichedVideos = apiVideos.length
     ? apiVideos.map((v) => ({

@@ -29,11 +29,9 @@ import {
 
 /* ─────────────── Tab definitions ─────────────── */
 const TABS = [
-  { key: 'adaptive', label: 'Adaptive Quiz', icon: Zap },
+  { key: 'unified_quiz', label: 'AI Quiz Lab', icon: Brain },
   { key: 'practice', label: 'Practice Lab', icon: FlaskConical },
-  { key: 'exam', label: 'Mock Exam', icon: ListChecks },
   { key: 'questions', label: 'Question Bank', icon: FileQuestion },
-  { key: 'scored', label: 'Scored Quiz', icon: Trophy },
 ];
 
 const tabPanelVariants = {
@@ -42,202 +40,6 @@ const tabPanelVariants = {
   exit: { opacity: 0, y: -10, transition: { duration: 0.15 } },
 };
 
-/* ═══════════════ ADAPTIVE QUIZ TAB ═══════════════ */
-function AdaptiveQuizTab() {
-  const { eduData } = useAuth();
-  const subjects = eduData?.subjects || ['General'];
-  const [subject, setSubject] = useState(subjects[0] || 'General');
-  const [context, setContext] = useState('');
-  const [sessionId, setSessionId] = useState(null);
-  const [question, setQuestion] = useState(null);
-  const [progress, setProgress] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [lastFeedback, setLastFeedback] = useState(null);
-  const [summary, setSummary] = useState(null);
-
-  const start = async () => {
-    setError('');
-    setLoading(true);
-    setSummary(null);
-    setLastFeedback(null);
-    try {
-      const { data } = await api.post('/study/companion/adaptive/start', {
-        subject,
-        context: context.trim() || undefined,
-        rounds: 8,
-      });
-      setSessionId(data.sessionId);
-      setQuestion(data.question);
-      setProgress(data.progress || { answered: 0, total: 8, currentQuestion: 1 });
-    } catch (e) {
-      setError(e.message || 'Could not start');
-    }
-    setLoading(false);
-  };
-
-  const answer = async (idx) => {
-    if (!sessionId || !question) return;
-    setError('');
-    setLoading(true);
-    setLastFeedback(null);
-    try {
-      const { data } = await api.post('/study/companion/adaptive/answer', {
-        sessionId,
-        selectedIndex: idx,
-      });
-      setLastFeedback({
-        correct: data.correct,
-        explanation: data.explanation,
-        flashcardCreated: data.flashcardCreated,
-      });
-      setProgress(data.progress);
-      if (data.done) {
-        setQuestion(null);
-        setSummary(data.sessionSummary);
-        setSessionId(null);
-      } else {
-        setQuestion(data.nextQuestion);
-      }
-    } catch (e) {
-      setError(e.message || 'Submit failed');
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="space-y-6">
-      <p className="text-sm text-[#555555]">
-        Difficulty shifts after every question. Wrong answers trigger a <strong>different-angle explanation</strong> and auto-create a{' '}
-        <strong>spaced-repetition flashcard</strong>. When you finish, your <strong>exam readiness</strong> score updates for this subject.
-      </p>
-
-      {!sessionId && !question && !summary && (
-        <div className="bg-white border-2 border-[#0D0D0D] rounded-[20px] p-6 space-y-4">
-          <label className="block text-xs font-bold uppercase text-[#555555]">Subject</label>
-          <select
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="w-full border-2 border-[#E0E0E0] rounded-xl px-3 py-2 text-sm font-medium"
-          >
-            {subjects.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <label className="block text-xs font-bold uppercase text-[#555555]">Optional context (notes snippet)</label>
-          <textarea
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            rows={3}
-            placeholder="Paste a short paragraph from your notes to ground questions…"
-            className="w-full border-2 border-[#E0E0E0] rounded-xl px-3 py-2 text-sm"
-          />
-          {error && <ErrorState message={error} onRetry={() => setError('')} />}
-          <button
-            type="button"
-            disabled={loading}
-            onClick={start}
-            className="inline-flex items-center gap-2 bg-[#0D0D0D] text-[#FFFF66] font-bold px-6 py-3 rounded-xl border-none cursor-pointer disabled:opacity-50"
-          >
-            {loading ? (
-              <span className="w-4 h-4 border-2 border-[#FFFF66] border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Play size={18} />
-            )}
-            Start adaptive run
-          </button>
-        </div>
-      )}
-
-      {!sessionId && !question && !summary && !loading && (
-        <EmptyState
-          title="Ready when you are"
-          hint="Eight questions per run. The system tightens or loosens difficulty based on how you're performing in real time."
-        />
-      )}
-
-      {loading && (sessionId || question) && <LoadingSkeleton lines={4} />}
-
-      <AnimatePresence mode="wait">
-        {question && !loading && (
-          <motion.div
-            key={question.question}
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -16 }}
-            className="bg-white border-2 border-[#FFFF66] rounded-[20px] p-6 space-y-4"
-          >
-            {progress && (
-              <div className="flex items-center justify-between text-xs font-bold text-[#555555]">
-                <span className="inline-flex items-center gap-1">
-                  <Target size={14} /> Difficulty band: {question.difficulty}/5
-                </span>
-                <span>
-                  Q {progress.currentQuestion ?? progress.answered + 1}/{progress.total}
-                </span>
-              </div>
-            )}
-            <p className="font-display font-bold text-lg leading-snug">{question.question}</p>
-            <div className="grid gap-2">
-              {question.options.map((opt, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => answer(i)}
-                  disabled={loading}
-                  className="text-left border-2 border-[#E0E0E0] rounded-xl px-4 py-3 text-sm font-medium hover:border-[#0D0D0D] hover:bg-[#FFFEEE] transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  <span className="font-bold text-[#888] mr-2">{String.fromCharCode(65 + i)}.</span>
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {lastFeedback && (
-        <motion.div
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`rounded-[16px] border-2 px-4 py-3 text-sm ${lastFeedback.correct ? 'border-green-200 bg-green-50 text-green-900' : 'border-amber-200 bg-amber-50 text-amber-950'}`}
-        >
-          <p className="font-bold mb-1">{lastFeedback.correct ? 'Nice — level up!' : "Let\u2019s fix that gap"}</p>
-          {lastFeedback.explanation && <p className="whitespace-pre-wrap">{lastFeedback.explanation}</p>}
-          {lastFeedback.flashcardCreated && (
-            <p className="mt-2 text-xs font-semibold">Flashcard added to spaced repetition for this concept.</p>
-          )}
-        </motion.div>
-      )}
-
-      {summary && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#0D0D0D] text-[#FFFF66] rounded-[20px] p-6 space-y-2"
-        >
-          <p className="font-display font-bold text-xl">Session complete</p>
-          <p className="text-white/90 text-sm">
-            Score {summary.attempt?.score}% · +{summary.xpGained} XP
-          </p>
-          {summary.readiness?.overall != null && (
-            <p className="text-white/70 text-xs">Overall readiness index: {summary.readiness.overall}%</p>
-          )}
-          <button
-            type="button"
-            onClick={() => {
-              setSummary(null);
-              setLastFeedback(null);
-            }}
-            className="mt-4 bg-[#FFFF66] text-[#0D0D0D] font-bold px-4 py-2 rounded-xl border-none cursor-pointer"
-          >
-            Run again
-          </button>
-        </motion.div>
-      )}
-    </div>
-  );
-}
 
 /* ═══════════════ PRACTICE LAB TAB ═══════════════ */
 function PracticeLabTab() {
@@ -447,181 +249,6 @@ function PracticeLabTab() {
   );
 }
 
-/* ═══════════════ MOCK EXAM TAB ═══════════════ */
-function MockExamTab() {
-  const [subject, setSubject] = useState('Mathematics');
-  const [examDate, setExamDate] = useState('');
-  const [sessionId, setSessionId] = useState(null);
-  const [question, setQuestion] = useState(null);
-  const [selected, setSelected] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [result, setResult] = useState(null);
-
-  const start = async () => {
-    setError('');
-    setLoading(true);
-    setResult(null);
-    try {
-      const { data } = await api.post('/study/exam/start', { subject, examDate });
-      setSessionId(data.sessionId);
-      setQuestion(data.question);
-      setSelected('');
-    } catch (e) {
-      setError(e.message);
-    }
-    setLoading(false);
-  };
-
-  const answerQ = async () => {
-    if (!sessionId || !question) return;
-    setError('');
-    setLoading(true);
-    try {
-      const { data } = await api.post('/study/exam/answer', {
-        sessionId,
-        questionId: question.id,
-        selectedOption: selected,
-      });
-      setQuestion(data.nextQuestion);
-      setSelected('');
-    } catch (e) {
-      setError(e.message);
-    }
-    setLoading(false);
-  };
-
-  const finish = async () => {
-    if (!sessionId) return;
-    setLoading(true);
-    try {
-      const { data } = await api.post('/study/exam/finish', { sessionId });
-      setResult(data);
-      setSessionId(null);
-      setQuestion(null);
-    } catch (e) {
-      setError(e.message);
-    }
-    setLoading(false);
-  };
-
-  return (
-    <div className="space-y-6">
-      <p className="text-sm text-[#555555]">
-        Wrong answers steer the next question toward weak areas. Finish to get a weakness map and 3-day revision plan (Gemini JSON).
-      </p>
-
-      {!sessionId && !result && (
-        <div className="bg-white border-2 border-[#0D0D0D] rounded-[20px] p-6 space-y-4">
-          <div>
-            <label className="block text-xs font-bold uppercase text-[#555555] mb-1">Subject</label>
-            <input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="w-full border-2 border-[#E0E0E0] rounded-xl px-4 py-3 text-sm"
-              placeholder="Subject"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold uppercase text-[#555555] mb-1">Exam date</label>
-            <input
-              type="date"
-              value={examDate}
-              onChange={(e) => setExamDate(e.target.value)}
-              className="w-full border-2 border-[#E0E0E0] rounded-xl px-4 py-3 text-sm"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={start}
-            disabled={loading}
-            className="inline-flex items-center gap-2 bg-[#0D0D0D] text-[#FFFF66] font-bold px-5 py-3 rounded-xl border-none cursor-pointer disabled:opacity-50"
-          >
-            {loading ? (
-              <span className="w-4 h-4 border-2 border-[#FFFF66] border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Play size={18} />
-            )}
-            Start mock exam
-          </button>
-        </div>
-      )}
-
-      {loading && <LoadingSkeleton />}
-      {error && <ErrorState message={error} onRetry={() => setError('')} />}
-
-      {sessionId && question && (
-        <motion.div
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-white border-2 border-[#FFFF66] rounded-[20px] p-6 space-y-4"
-        >
-          <p className="font-display font-bold text-lg">{question.question}</p>
-          <div className="space-y-2">
-            {(question.options || []).map((o) => (
-              <label key={o} className="flex items-center gap-2 cursor-pointer text-[15px]">
-                <input type="radio" name="mcq" checked={selected === o} onChange={() => setSelected(o)} />
-                {o}
-              </label>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={answerQ}
-              disabled={loading || !selected}
-              className="inline-flex items-center gap-2 bg-[#0D0D0D] text-[#FFFF66] font-bold px-4 py-2 rounded-xl border-none cursor-pointer disabled:opacity-50"
-            >
-              <Send size={16} /> Submit & next
-            </button>
-            <button
-              type="button"
-              onClick={finish}
-              disabled={loading}
-              className="inline-flex items-center gap-2 bg-white border-2 border-[#0D0D0D] font-bold px-4 py-2 rounded-xl cursor-pointer"
-            >
-              <Flag size={16} /> End & analyze
-            </button>
-          </div>
-        </motion.div>
-      )}
-
-      {result && (
-        <div className="space-y-4">
-          <div className="bg-white border-2 border-[#0D0D0D] rounded-[20px] p-6">
-            <h3 className="font-display font-bold text-lg mb-2">Weakness map</h3>
-            <ul className="space-y-2">
-              {(result.weakness_map || []).map((w, i) => (
-                <li key={i} className="text-sm border border-[#E0E0E0] rounded-lg p-3">
-                  <span className="font-bold">{w.topic}</span> · severity {w.severity}
-                  <p className="text-[#555555]">{w.hint}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="bg-white border-2 border-[#0D0D0D] rounded-[20px] p-6">
-            <h3 className="font-display font-bold text-lg mb-2">3-day revision</h3>
-            <ul className="space-y-3">
-              {(result.revision_plan || []).map((d) => (
-                <li key={d.day}>
-                  <p className="font-bold">Day {d.day}</p>
-                  <ul className="list-disc pl-5 text-sm">{d.tasks?.map((t, i) => <li key={i}>{t}</li>)}</ul>
-                </li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              onClick={() => setResult(null)}
-              className="mt-4 text-sm font-bold underline cursor-pointer bg-transparent border-none"
-            >
-              Start over
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ═══════════════ QUESTION BANK TAB ═══════════════ */
 function QuestionBankTab() {
@@ -771,7 +398,7 @@ function QuestionBankTab() {
   );
 }
 
-/* ═══════════════ SCORED QUIZ TAB ═══════════════ */
+/* ═══════════════ UNIFIED AI QUIZ LAB TAB ═══════════════ */
 const pad = n => String(n).padStart(2, '0');
 function fmtTime(secs) { return `${pad(Math.floor(secs / 60))}:${pad(secs % 60)}`; }
 function fmtDateTime(iso) {
@@ -781,7 +408,7 @@ function fmtDateTime(iso) {
 }
 const PHASE = { SETUP: 'setup', LOADING: 'loading', QUIZ: 'quiz', RESULT: 'result' };
 
-function ScoredQuizTab() {
+function AIQuizLabTab() {
   const { eduData } = useAuth();
   const navigate = useNavigate();
   const subjects = eduData?.subjects || [];
@@ -797,6 +424,10 @@ function ScoredQuizTab() {
   const [elapsed, setElapsed] = useState(0);
   const [startedAt, setStartedAt] = useState(null);
   const [result, setResult] = useState(null);
+  
+  const [analysis, setAnalysis] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const timerRef = useRef(null);
@@ -874,6 +505,7 @@ function ScoredQuizTab() {
         }
       }
     });
+
     const totalGraded = gradeable;
     const totalQuestions = questions.length;
     const resultData = {
@@ -884,10 +516,15 @@ function ScoredQuizTab() {
       questions: questions.map((q, i) => ({
         question: q.question,
         type: q.type,
+        topic: q.topic || 'general',
         userAnswer: selected[i] || null,
         correctAnswer: q.answer,
+        options: q.options
       })),
     };
+
+    setPhase(PHASE.RESULT);
+
     try {
       const { data } = await api.post('/quiz/save', resultData);
       setResult(data.attempt);
@@ -895,7 +532,18 @@ function ScoredQuizTab() {
     } catch {
       setResult({ ...resultData, score: Math.round((correct / (totalGraded || 1)) * 100) });
     }
-    setPhase(PHASE.RESULT);
+
+    setAnalyzing(true);
+    try {
+      const { data: analysisData } = await api.post('/quiz/analyze', {
+        subject: resultData.subject,
+        questions: resultData.questions
+      });
+      setAnalysis(analysisData);
+    } catch (e) {
+      console.error('Analyze failed', e);
+    }
+    setAnalyzing(false);
   };
 
   const q = questions[currentIdx];
@@ -910,7 +558,7 @@ function ScoredQuizTab() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-[#555555]">
-        Test yourself with AI-generated questions. Your scores track difficulty and <strong>feed the AI study planner</strong>.
+        Test yourself with precision AI questions. Results track your proficiency, provide deep weakness analytics, and <strong>feed your AI study planner</strong>.
       </p>
 
       {/* ── SETUP ── */}
@@ -921,9 +569,9 @@ function ScoredQuizTab() {
               <div className="w-10 h-10 bg-[#FFB6C1] border-2 border-[#0D0D0D] rounded-[10px] flex items-center justify-center">
                 <Brain size={20} />
               </div>
-              <h2 className="text-[22px] font-extrabold">Start a Scored Quiz</h2>
+              <h2 className="text-[22px] font-extrabold">AI Quiz Lab</h2>
             </div>
-            <p className="text-sm text-[#555555] mb-6">Results are saved and used to personalise your AI study timetable.</p>
+            <p className="text-sm text-[#555555] mb-6">Choose any topic. Get graded. Review your weakness map.</p>
 
             <div className="flex gap-4 flex-wrap items-end">
               <div className="flex flex-col gap-1.5 flex-1 min-w-[160px]">
@@ -935,14 +583,14 @@ function ScoredQuizTab() {
               </div>
               <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
                 <label className="text-[13px] font-semibold">Topic / Chapter <span className="text-[#999]">(optional)</span></label>
-                <input type="text" placeholder="e.g. Newton's Laws, Organic Chemistry"
+                <input type="text" placeholder="e.g. Newton's Laws"
                   value={topic} onChange={e => setTopic(e.target.value)}
                   className="px-3.5 py-[11px] border-2 border-[#0D0D0D] rounded-[8px] text-sm outline-none focus:shadow-[0_0_0_3px_#87CEEB] transition-all" />
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-[13px] font-semibold">Questions</label>
                 <div className="flex gap-1.5">
-                  {[5, 10, 15, 20].map(n => (
+                  {[5, 10, 15].map(n => (
                     <button key={n} onClick={() => setCount(n)}
                       className={`w-11 h-11 border-2 border-[#0D0D0D] rounded-[8px] text-sm font-bold transition-all ${count === n ? 'bg-[#0D0D0D] text-[#FFFF66]' : 'bg-white hover:bg-[#F0F0F0]'}`}>
                       {n}
@@ -954,14 +602,13 @@ function ScoredQuizTab() {
 
             <button onClick={handleStart}
               className="mt-6 px-7 py-3.5 bg-[#FFB6C1] border-2 border-[#0D0D0D] rounded-[8px] font-display text-[15px] font-bold hover:-translate-y-0.5 hover:shadow-[4px_4px_0_#0D0D0D] transition-all flex items-center gap-2">
-              <Brain size={16} /> Generate & Start Quiz
+              <Brain size={16} /> Generate & Start
             </button>
           </div>
 
-          {/* History */}
           <div className="bg-white border-2 border-[#0D0D0D] rounded-[24px] overflow-hidden">
             <div className="px-6 py-4 border-b-2 border-[#0D0D0D] bg-[#F9F9F9] flex items-center justify-between">
-              <h3 className="text-[17px] font-extrabold">Quiz History — {subject}</h3>
+              <h3 className="text-[17px] font-extrabold">History — {subject}</h3>
               <span className="text-xs text-[#555555] font-semibold">{history.length} attempt{history.length !== 1 ? 's' : ''}</span>
             </div>
             {loadingHistory ? (
@@ -1122,18 +769,18 @@ function ScoredQuizTab() {
 
       {/* ── RESULT ── */}
       {phase === PHASE.RESULT && result && (
-        <div className="flex flex-col gap-5 animate-fadeUp max-w-[600px]">
-          <div className="bg-white border-2 border-[#0D0D0D] rounded-[24px] p-8 text-center">
+        <div className="flex flex-col gap-5 animate-fadeUp">
+          <div className="bg-white border-2 border-[#0D0D0D] rounded-[24px] p-8 text-center max-w-[600px] mx-auto w-full">
             <div className="w-24 h-24 rounded-full border-4 border-[#0D0D0D] mx-auto mb-5 flex flex-col items-center justify-center"
               style={{ background: `conic-gradient(${scoreColor(result.score)} calc(${result.score} * 1%), #E0E0E0 0)` }}>
               <span className="font-display text-[28px] font-extrabold leading-tight">{result.score}</span>
               <span className="text-xs text-[#555555]">/ 100</span>
             </div>
             <h2 className="text-[24px] font-extrabold mb-1.5">
-              {result.score >= 80 ? '\uD83C\uDF89 Excellent!' : result.score >= 60 ? '\uD83D\uDC4D Good job!' : '\uD83D\uDCAA Keep practicing!'}
+              {result.score >= 80 ? '🎉 Excellent!' : result.score >= 60 ? '👍 Good job!' : '💪 Keep practicing!'}
             </h2>
             <p className="text-sm text-[#555555] mb-6">
-              {result.correct} / {result.total} correct \u00B7 {fmtTime(result.timeTakenSeconds || 0)} taken
+              {result.correct} / {result.total} correct • {fmtTime(result.timeTakenSeconds || 0)} taken
             </p>
 
             <div className="grid grid-cols-3 gap-3 mb-6">
@@ -1151,7 +798,7 @@ function ScoredQuizTab() {
             </div>
 
             <p className="text-[13px] text-[#555555] mb-6 px-4">
-              \u2705 Your quiz data has been saved and will be used to personalise your AI study timetable.
+              ✅ Your quiz data has been saved and will be used to personalise your AI study timetable.
             </p>
 
             <div className="flex gap-3 justify-center flex-wrap">
@@ -1161,9 +808,67 @@ function ScoredQuizTab() {
               </button>
               <button onClick={() => navigate('/study/planner')}
                 className="flex items-center gap-1.5 px-5 py-2.5 bg-[#0D0D0D] text-[#FFFF66] border-2 border-[#0D0D0D] rounded-[8px] text-sm font-bold hover:-translate-y-0.5 transition-all">
-                View AI Timetable \u2192
+                View AI Timetable →
               </button>
             </div>
+          </div>
+          
+          {/* WEAKNESS ANALYSIS SECTION ENHANCED FROM MOCK EXAM */}
+          <div className="bg-white border-2 border-[#0D0D0D] rounded-[24px] p-8 max-w-[800px] mx-auto w-full">
+             {analyzing ? (
+               <div className="flex flex-col items-center justify-center p-6 gap-3">
+                 <div className="w-8 h-8 border-[3px] border-[#0D0D0D] border-t-transparent rounded-full animate-spin" />
+                 <p className="font-bold text-sm text-[#0D0D0D]">Analyzing weaknesses...</p>
+               </div>
+             ) : analysis ? (
+               <div className="space-y-6">
+                 <div>
+                   <div className="flex items-center gap-2 mb-3">
+                     <Brain size={18} className="text-[#0D0D0D]" />
+                     <h3 className="font-display font-bold text-[18px]">Weakness Map</h3>
+                   </div>
+                   {analysis.weakness_map?.length > 0 ? (
+                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                       {analysis.weakness_map.map((w, i) => (
+                         <div key={i} className="text-sm border-2 border-[#E0E0E0] rounded-[12px] p-3.5 bg-[#F9F9F9]">
+                           <div className="flex justify-between items-start mb-1">
+                             <span className="font-extrabold text-[#0D0D0D]">{w.topic}</span>
+                             <span className="text-[10px] font-bold uppercase tracking-wider text-red-500 bg-red-100 px-2 py-0.5 rounded-full">Severity {w.severity}</span>
+                           </div>
+                           <p className="text-[#555555] text-xs leading-relaxed">{w.hint}</p>
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <p className="text-sm text-[#555555] italic">Stellar performance! No critical weaknesses detected.</p>
+                   )}
+                 </div>
+
+                 {analysis.revision_plan?.length > 0 && (
+                   <div className="pt-4 border-t-2 border-[#E0E0E0]">
+                     <h3 className="font-display font-bold text-[18px] mb-4">Recommended 3-Day Revision</h3>
+                     <div className="space-y-3">
+                       {analysis.revision_plan.map((d) => (
+                         <div key={d.day} className="flex gap-4 p-4 border-2 border-[#0D0D0D] rounded-[16px] bg-white">
+                           <div className="w-12 h-12 bg-[#FFFF66] border-2 border-[#0D0D0D] rounded-xl flex items-center justify-center flex-shrink-0 font-display font-bold text-lg">
+                             D{d.day}
+                           </div>
+                           <div className="flex-1">
+                             <ul className="list-disc pl-4 space-y-1.5 mt-1">
+                               {d.tasks?.map((t, i) => (
+                                 <li key={i} className="text-[13px] font-medium text-[#111]">{t}</li>
+                               ))}
+                             </ul>
+                           </div>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+                 )}
+               </div>
+             ) : (
+                <p className="text-sm text-[#555555]">Analysis highly dependent on completed questions...</p>
+             )}
           </div>
         </div>
       )}
@@ -1173,7 +878,7 @@ function ScoredQuizTab() {
 
 /* ═══════════════ MAIN HUB PAGE ═══════════════ */
 export default function SmartPracticeHub() {
-  const [activeTab, setActiveTab] = useState('adaptive');
+  const [activeTab, setActiveTab] = useState('unified_quiz');
 
   /* State-isolation key — forces child remount on tab switch */
   const [tabKey, setTabKey] = useState(0);
@@ -1183,16 +888,12 @@ export default function SmartPracticeHub() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'adaptive':
-        return <AdaptiveQuizTab key={tabKey} />;
+      case 'unified_quiz':
+        return <AIQuizLabTab key={tabKey} />;
       case 'practice':
         return <PracticeLabTab key={tabKey} />;
-      case 'exam':
-        return <MockExamTab key={tabKey} />;
       case 'questions':
         return <QuestionBankTab key={tabKey} />;
-      case 'scored':
-        return <ScoredQuizTab key={tabKey} />;
       default:
         return null;
     }

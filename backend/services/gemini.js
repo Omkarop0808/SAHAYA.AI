@@ -63,7 +63,7 @@ export async function callGemini(systemPrompt, userPrompt, options = {}) {
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
   /* ── Groq (primary, with 1 retry) ── */
-  if (GROQ_API_KEY) {
+  if (GROQ_API_KEY && !options.skipGroq) {
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
         return await callGroq(systemPrompt, userPrompt, {
@@ -229,14 +229,18 @@ export function cosineSimilarity(a, b) {
   return d === 0 ? 0 : dot / d;
 }
 
-export async function callGeminiJSON(systemPrompt, userPrompt, maxTokens = 4096) {
-  const raw = await callGemini(systemPrompt, userPrompt, { maxTokens, jsonMode: true });
+export async function callGeminiJSON(systemPrompt, userPrompt, optionsOrToken = 4096) {
+  const options = typeof optionsOrToken === 'object' ? optionsOrToken : { maxTokens: optionsOrToken };
+  const maxTokens = options.maxTokens ?? 4096;
+  const skipGroq = options.skipGroq ?? false;
+
+  const raw = await callGemini(systemPrompt, userPrompt, { maxTokens, jsonMode: true, skipGroq });
   const parsed = safeParseJSON(raw);
   if (parsed) return parsed;
   const repair = await callGemini(
     'You output only valid JSON. No markdown.',
     `Fix this to valid JSON only:\n${raw}`,
-    { maxTokens: 2048, jsonMode: true },
+    { maxTokens: 2048, jsonMode: true, skipGroq }
   );
   const again = safeParseJSON(repair);
   if (again) return again;
