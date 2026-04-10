@@ -50,6 +50,20 @@ function normalizeStep(step, i) {
 function sanitizeAnalysis(raw) {
   const safe = raw && typeof raw === 'object' ? raw : {};
   const steps = Array.isArray(safe?.visualization?.steps) ? safe.visualization.steps.slice(0, 120).map(normalizeStep) : [];
+  
+  let finalObj = safe.final && typeof safe.final === 'object' ? safe.final : {};
+  
+  // Fallbacks if LLM generates fields outside of "final" wrapper
+  if (!finalObj.code) {
+      finalObj.code = safe.code || safe.solution || safe.python_code || '# Code missing from AI response.\n# You can use the Tracer and write your own code to visualize execution.';
+  }
+  if (!finalObj.complexity || Object.keys(finalObj.complexity).length === 0) {
+      finalObj.complexity = safe.complexity || { time: safe.time || 'N/A', space: safe.space || 'N/A', explain: safe.explain || '' };
+  }
+  if (!finalObj.similar || !Array.isArray(finalObj.similar)) {
+      finalObj.similar = Array.isArray(safe.similar) ? safe.similar : [];
+  }
+
   return {
     problem: safe.problem && typeof safe.problem === 'object' ? safe.problem : null,
     pattern: safe.pattern && typeof safe.pattern === 'object' ? safe.pattern : null,
@@ -57,7 +71,7 @@ function sanitizeAnalysis(raw) {
       steps,
       primaryStructure: String(safe?.visualization?.primaryStructure || 'mixed'),
     },
-    final: safe.final && typeof safe.final === 'object' ? safe.final : null,
+    final: finalObj,
   };
 }
 

@@ -619,7 +619,7 @@ Then pick the best pattern, produce an accurate step-by-step visualization scrip
 CRITICAL: At the end of the Python code, you MUST append a driver block that assigns sample inputs from example #1, calls the optimal solution function/method on those inputs, and prints the result, so the code is fully runnable and self-contained.`;
 
   try {
-    const analysis = await callGeminiStructuredJSON(system, prompt, 3500);
+    const analysis = await callGeminiStructuredJSON(system, prompt, 8000);
     // lightweight progress XP
     await insertOne('career_visualizer_runs', { id: randomUUID(), userId, input: raw, createdAt: nowIso(), analysis });
     await awardXp(userId, 8, 'career_visualizer_run', { world: WORLDS.career });

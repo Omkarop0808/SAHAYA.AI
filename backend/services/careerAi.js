@@ -154,7 +154,7 @@ export async function callGeminiStructuredJSON(systemPrompt, userPrompt, maxToke
     const raw = await callGroqChat(
       `${systemPrompt}\n\nReturn valid JSON only.`,
       userPrompt,
-      { maxTokens, jsonMode: true },
+      { maxTokens: Math.min(maxTokens, 4000), jsonMode: true },
     );
     const parsed = safeParseJSON(raw);
     if (parsed) return parsed;
