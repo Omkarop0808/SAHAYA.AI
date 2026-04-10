@@ -61,6 +61,7 @@ export default function ProblemArena() {
     try {
       const data = await listCareerProblems();
       setState({ loading: false, error: null, problems: data.problems || [] });
+      if (data?.dailyChallenge) setDaily({ ...data.dailyChallenge, bonusXp: 35 });
     } catch {
       setState({ loading: false, error: 'Failed to load problems.', problems: [] });
     }

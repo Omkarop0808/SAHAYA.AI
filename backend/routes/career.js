@@ -2,6 +2,12 @@ import express from 'express';
 import { randomUUID } from 'crypto';
 import vm from 'vm';
 import * as cheerio from 'cheerio';
+import multer from 'multer';
+import { spawn } from 'child_process';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import pdfParse from 'pdf-parse';
 import { authMiddleware } from '../middleware/auth.js';
 import { callGroqChat, callGroqChatJSON, callGeminiStructuredJSON } from '../services/careerAi.js';
 import { ragRetrieve } from '../services/ragLocal.js';
@@ -15,8 +21,19 @@ const COL_ATTEMPTS = 'career_problem_attempts';
 const COL_ROOMS = 'career_rooms';
 const COL_INTERVIEWS = 'career_interviews';
 const COL_RESUME = 'career_resume_intel';
+const COL_RESUME_PROFILE = 'career_resume_profiles';
 const COL_JD = 'career_jd_scans';
 const COL_APP_KIT = 'career_application_kits';
+const COL_ROLE_INTEL_CACHE = 'career_role_intel_cache';
+const COL_RECRUITER_SIM = 'career_recruiter_sim_sessions';
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, os.tmpdir()),
+    filename: (_req, file, cb) => cb(null, `resume-${Date.now()}-${Math.random().toString(36).slice(2)}${path.extname(file.originalname || '.pdf')}`),
+  }),
+  limits: { fileSize: 12 * 1024 * 1024 },
+});
 
 function nowIso() {
   return new Date().toISOString();
@@ -84,6 +101,28 @@ function seedProblems() {
       ],
     },
   ];
+}
+
+function dayKey(d = new Date()) {
+  return new Date(d).toISOString().slice(0, 10);
+}
+
+function pickDailyProblemForUser(userId = '', d = new Date()) {
+  const problems = seedProblems();
+  if (!problems.length) return null;
+  const key = `${dayKey(d)}:${String(userId || '')}`;
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) hash = ((hash << 5) - hash) + key.charCodeAt(i);
+  const idx = Math.abs(hash) % problems.length;
+  return problems[idx];
+}
+
+function rotateProblemsForDay(userId = '', d = new Date()) {
+  const problems = seedProblems();
+  if (!problems.length) return [];
+  const daily = pickDailyProblemForUser(userId, d);
+  const rest = problems.filter((p) => p.id !== daily?.id);
+  return daily ? [daily, ...rest] : problems;
 }
 
 function normalizeTwoSum(output) {
@@ -180,6 +219,88 @@ function weakTopicsFromAttempts(attempts) {
   return rows.sort((a, b) => a.mastery - b.mastery).slice(0, 5);
 }
 
+function parseSkillBucket(arr) {
+  const list = Array.isArray(arr) ? arr : [];
+  return list.map((x) => String(x || '').trim()).filter(Boolean);
+}
+
+function topMissingSkillsFromActivity({ attempts = [], socratic = [], interviews = [] }) {
+  const byTopic = new Map();
+  attempts.forEach((a) => {
+    const t = String(a.topic || '').trim();
+    if (!t) return;
+    const cur = byTopic.get(t) || { tries: 0, pass: 0 };
+    cur.tries += 1;
+    if (a.result === 'pass') cur.pass += 1;
+    byTopic.set(t, cur);
+  });
+  socratic.forEach((s) => {
+    const t = String(s.topic || '').trim();
+    if (!t) return;
+    const cur = byTopic.get(t) || { tries: 0, pass: 0 };
+    cur.tries += 1;
+    byTopic.set(t, cur);
+  });
+  const weak = Array.from(byTopic.entries())
+    .map(([topic, v]) => ({ topic, score: v.tries ? v.pass / v.tries : 0 }))
+    .sort((a, b) => a.score - b.score)
+    .map((x) => x.topic)
+    .slice(0, 8);
+  const interviewHints = interviews
+    .flatMap((s) => (s.assessment?.nextTopics || []))
+    .map((x) => String(x || '').trim())
+    .filter(Boolean)
+    .slice(0, 6);
+  return Array.from(new Set([...weak, ...interviewHints])).slice(0, 10);
+}
+
+function makeRoleIntelKey(goal, context = {}) {
+  const g = String(goal || 'software engineer').trim().toLowerCase();
+  const parts = [
+    ...parseSkillBucket(context.resumeSkills || []).slice(0, 8),
+    ...parseSkillBucket(context.missingSkills || []).slice(0, 8),
+    ...parseSkillBucket(context.jdSkills || []).slice(0, 8),
+  ]
+    .map((x) => x.toLowerCase())
+    .sort();
+  const sig = parts.join('|').slice(0, 240);
+  return `${g}__${sig || 'generic'}`;
+}
+
+async function runPdfExtractionWithLlmware(pdfPath) {
+  const scriptPath = path.join(process.cwd(), 'ai_service', 'resume_pdf_extract.py');
+  return new Promise((resolve, reject) => {
+    const pyBin = process.env.PYTHON_BIN || 'python';
+    const child = spawn(pyBin, [scriptPath, pdfPath], { stdio: ['ignore', 'pipe', 'pipe'] });
+    let out = '';
+    let err = '';
+    child.stdout.on('data', (d) => {
+      out += String(d || '');
+    });
+    child.stderr.on('data', (d) => {
+      err += String(d || '');
+    });
+    child.on('error', (e) => reject(e));
+    child.on('close', (code) => {
+      if (code !== 0) return reject(new Error(err || `PDF parser exited with code ${code}`));
+      try {
+        const parsed = JSON.parse(out || '{}');
+        resolve(parsed);
+      } catch {
+        reject(new Error('Failed to parse PDF extraction output'));
+      }
+    });
+  });
+}
+
+async function runPdfExtractionFallback(pdfPath) {
+  const buf = fs.readFileSync(pdfPath);
+  const parsed = await pdfParse(buf);
+  const text = String(parsed?.text || '').trim();
+  const pageCount = Number(parsed?.numpages || 0);
+  return { text, pageCount };
+}
+
 router.get('/dashboard', authMiddleware, async (req, res) => {
   const userId = req.userId;
   const profile = await getOrCreateGamification(userId);
@@ -188,7 +309,10 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
     .slice(0, 10);
   const readinessScore = computeReadiness(await findAll(COL_ATTEMPTS, (a) => a.userId === userId));
   const weakTopics = weakTopicsFromAttempts(attempts);
-  const dailyChallenge = { id: 'two-sum', title: 'Two Sum (Daily)', bonusXp: 35 };
+  const daily = pickDailyProblemForUser(userId);
+  const dailyChallenge = daily
+    ? { id: daily.id, title: `${daily.title} (Daily)`, bonusXp: 35, day: dayKey() }
+    : null;
   res.json({ profile, readinessScore, weakTopics, recentAttempts: attempts, dailyChallenge });
 });
 
@@ -224,9 +348,13 @@ router.get('/analytics/summary', authMiddleware, async (req, res) => {
   });
 });
 
-router.get('/problems', authMiddleware, async (_req, res) => {
-  // MVP: static seed
-  res.json({ problems: seedProblems() });
+router.get('/problems', authMiddleware, async (req, res) => {
+  const userId = req.userId;
+  const daily = pickDailyProblemForUser(userId);
+  res.json({
+    problems: rotateProblemsForDay(userId),
+    dailyChallenge: daily ? { id: daily.id, title: daily.title, day: dayKey() } : null,
+  });
 });
 
 router.get('/problems/:id', authMiddleware, async (req, res) => {
@@ -692,22 +820,101 @@ Derive questionReviews from the assistant questions in the conversation (summari
   res.json({ assessment });
 });
 
+router.get('/resume/profile', authMiddleware, async (req, res) => {
+  const userId = req.userId;
+  const latest = await findOne(COL_RESUME_PROFILE, (x) => x.userId === userId);
+  res.json({ profile: latest || null });
+});
+
+router.post('/resume/upload-pdf', authMiddleware, upload.single('resumePdf'), async (req, res) => {
+  const userId = req.userId;
+  if (!req.file) return res.status(400).json({ error: 'resumePdf file is required' });
+  const mime = String(req.file.mimetype || '').toLowerCase();
+  if (!mime.includes('pdf')) {
+    try { fs.unlinkSync(req.file.path); } catch {}
+    return res.status(400).json({ error: 'Only PDF files are supported' });
+  }
+  try {
+    let parsed;
+    try {
+      parsed = await runPdfExtractionWithLlmware(req.file.path);
+    } catch {
+      // Robust local fallback so upload still works when llmware isn't installed.
+      parsed = await runPdfExtractionFallback(req.file.path);
+    }
+    const extractedText = String(parsed?.text || '').trim().slice(0, 120000);
+    const pageCount = Number(parsed?.pageCount || 0);
+    if (!extractedText) {
+      return res.status(422).json({ error: 'Could not extract text from this PDF. You can paste resume text manually instead.' });
+    }
+    const doc = {
+      id: `${userId}__resume_profile`,
+      userId,
+      fileName: req.file.originalname || 'resume.pdf',
+      pageCount: Number.isFinite(pageCount) ? pageCount : 0,
+      extractedText,
+      extractedPreview: extractedText.slice(0, 900),
+      updatedAt: nowIso(),
+      source: 'pdf',
+    };
+    const updated = await updateOne(COL_RESUME_PROFILE, (x) => x.userId === userId, doc);
+    if (!updated) await insertOne(COL_RESUME_PROFILE, doc);
+    res.json({ resume: doc });
+  } catch (e) {
+    res.status(500).json({
+      error: `PDF extraction failed locally. ${e.message || ''}`.trim(),
+      fallback: 'Paste resume text manually and continue analysis.',
+    });
+  } finally {
+    try { fs.unlinkSync(req.file.path); } catch {}
+  }
+});
+
 router.post('/resume/analyze', authMiddleware, async (req, res) => {
   const userId = req.userId;
   const { resumeText = '', goal = 'Software Engineer' } = req.body || {};
-  const text = String(resumeText || '').slice(0, 120000);
+  const profile = await findOne(COL_RESUME_PROFILE, (x) => x.userId === userId);
+  const text = String(resumeText || profile?.extractedText || '').slice(0, 120000);
   if (!text.trim()) return res.status(400).json({ error: 'resumeText required (paste extracted text for MVP)' });
+
+  const [eduData, attempts, socraticSessions, interviews, visualizerRuns] = await Promise.all([
+    findOne('edu_data', (x) => x.userId === userId),
+    findAll(COL_ATTEMPTS, (x) => x.userId === userId),
+    findAll('career_socratic_sessions', (x) => x.userId === userId),
+    findAll(COL_INTERVIEWS, (x) => x.userId === userId),
+    findAll('career_visualizer_runs', (x) => x.userId === userId),
+  ]);
+  const weakSkills = topMissingSkillsFromActivity({ attempts, socratic: socraticSessions, interviews });
+  const activityFacts = {
+    semester: eduData?.semester || 'unknown',
+    educationLevel: eduData?.educationLevel || 'unknown',
+    attempts: attempts.length,
+    passedAttempts: attempts.filter((a) => a.result === 'pass').length,
+    socraticTopics: socraticSessions.map((s) => s.topic).filter(Boolean).slice(0, 8),
+    interviewSessions: interviews.length,
+    visualizerRuns: visualizerRuns.length,
+    weakSkills,
+  };
 
   const system = `You analyze resumes for tech roles. Return STRICT JSON:
 {
   "readinessScore": 0-100,
   "verdict": "ready" | "not_ready",
   "readyRoles": [{ "title": "string", "matchPercent": 0-100 }],
+  "readyNow": [{ "title": "string", "matchPercent": 0-100 }],
+  "reachableIn4Weeks": [{ "title": "string", "matchPercent": 0-100 }],
   "missing": [{ "area": "skills"|"projects"|"experience", "detail": "string" }],
+  "prioritySkills": [{ "skill":"string","hours": number,"resource":"string" }],
   "alreadyReadyFor": [{ "title": "string", "reason": "string" }],
   "summary": "string"
 }`;
-  const prompt = `Career goal focus: ${goal}\n\nRESUME TEXT:\n${text}`;
+  const prompt = `Career goal focus: ${goal}
+
+USER PROFILE + ACTIVITY:
+${JSON.stringify(activityFacts)}
+
+RESUME TEXT:
+${text}`;
   try {
     const analysis = await callGeminiStructuredJSON(system, prompt, 2500);
     const row = {
@@ -719,7 +926,7 @@ router.post('/resume/analyze', authMiddleware, async (req, res) => {
     };
     await insertOne(COL_RESUME, row);
     await awardXp(userId, 15, 'career_resume_analyze', { world: WORLDS.career });
-    res.json({ analysis, savedId: row.id });
+    res.json({ analysis, savedId: row.id, profile });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -727,12 +934,27 @@ router.post('/resume/analyze', authMiddleware, async (req, res) => {
 
 router.get('/resume/role-intelligence', authMiddleware, async (req, res) => {
   const goal = String(req.query.goal || 'Software Engineer');
-  const tavily = await tavilySearch(`What skills and tools do technical recruiters expect for ${goal} roles in 2025 2026 beyond core CS`, {
-    maxResults: 5,
-  });
+  const cacheKey = makeRoleIntelKey(goal, {});
+  const now = Date.now();
+  const freshMs = 24 * 60 * 60 * 1000;
+  const cached = await findOne(COL_ROLE_INTEL_CACHE, (x) => x.roleKey === cacheKey && x.userId === req.userId);
+  if (cached?.updatedAt && (now - new Date(cached.updatedAt).getTime()) < freshMs) {
+    return res.json({
+      goal,
+      tavilyOk: true,
+      cached: true,
+      fetchedAt: cached.updatedAt,
+      intel: cached.intel,
+    });
+  }
+  const tavily = await tavilySearch(
+    `Real recruiter requirements and trending skills for ${goal} job postings now. Include AI skills like MCP, RAG, AI agents, copilots.`,
+    { maxResults: 6 },
+  );
   const system = `From SEARCH_ANSWER and BULLETS, produce STRICT JSON:
 {
   "trends": ["string"],
+  "recruiterWantsNow": [{ "skill":"string","reason":"string","twoWeekPlan":"string" }],
   "twoWeekRoadmap": [{ "skill": "string", "days": "string", "steps": ["string"] }]
 }`;
   const bullets = (tavily.results || []).map((r) => `${r.title}: ${r.content || ''}`).join('\n');
@@ -741,18 +963,158 @@ router.get('/resume/role-intelligence', authMiddleware, async (req, res) => {
     const intel = tavily.ok
       ? await callGeminiStructuredJSON(system, prompt, 1800)
       : { trends: ['Configure TAVILY_API_KEY for live market data'], twoWeekRoadmap: [] };
-    res.json({ goal, tavilyOk: tavily.ok, intel });
+    if (tavily.ok) {
+      const doc = {
+        id: `role_intel__${cacheKey}`,
+        userId: req.userId,
+        roleKey: cacheKey,
+        goal,
+        intel,
+        updatedAt: nowIso(),
+      };
+      const updated = await updateOne(COL_ROLE_INTEL_CACHE, (x) => x.roleKey === cacheKey, doc);
+      if (!updated) await insertOne(COL_ROLE_INTEL_CACHE, doc);
+      return res.json({ goal, tavilyOk: true, cached: false, fetchedAt: doc.updatedAt, intel });
+    }
+    if (cached) {
+      return res.json({
+        goal,
+        tavilyOk: false,
+        cached: true,
+        fetchedAt: cached.updatedAt,
+        intel: cached.intel,
+        warning: 'Live Tavily fetch failed; showing cached market intel.',
+      });
+    }
+    res.json({ goal, tavilyOk: false, cached: false, fetchedAt: nowIso(), intel });
   } catch (e) {
+    if (cached) {
+      return res.json({
+        goal,
+        tavilyOk: false,
+        cached: true,
+        fetchedAt: cached.updatedAt,
+        intel: cached.intel,
+        warning: 'Live generation failed; showing cached market intel.',
+      });
+    }
     res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/resume/role-intelligence', authMiddleware, async (req, res) => {
+  const userId = req.userId;
+  const {
+    goal = 'Software Engineer',
+    resumeSkills = [],
+    missingSkills = [],
+    jdSkills = [],
+  } = req.body || {};
+  const g = String(goal || 'Software Engineer');
+  const context = {
+    resumeSkills: parseSkillBucket(resumeSkills),
+    missingSkills: parseSkillBucket(missingSkills),
+    jdSkills: parseSkillBucket(jdSkills),
+  };
+  const cacheKey = makeRoleIntelKey(g, context);
+  const now = Date.now();
+  const freshMs = 24 * 60 * 60 * 1000;
+  const cached = await findOne(COL_ROLE_INTEL_CACHE, (x) => x.roleKey === cacheKey && x.userId === userId);
+  if (cached?.updatedAt && (now - new Date(cached.updatedAt).getTime()) < freshMs) {
+    return res.json({
+      goal: g,
+      tavilyOk: true,
+      cached: true,
+      fetchedAt: cached.updatedAt,
+      intel: cached.intel,
+      personalized: true,
+    });
+  }
+
+  const recruiterQuery = [
+    `Real recruiter requirements for ${g} roles right now`,
+    context.jdSkills.length ? `JD asks: ${context.jdSkills.join(', ')}` : '',
+    context.missingSkills.length ? `Candidate gaps: ${context.missingSkills.join(', ')}` : '',
+    'Include market demand, must-have stacks, and AI requirements like MCP/RAG/agents',
+  ]
+    .filter(Boolean)
+    .join('. ');
+
+  const tavily = await tavilySearch(recruiterQuery, { maxResults: 6 });
+  const system = `From SEARCH_ANSWER and BULLETS, produce STRICT JSON:
+{
+  "trends": ["string"],
+  "recruiterWantsNow": [{ "skill":"string","reason":"string","twoWeekPlan":"string" }],
+  "whatToDoNow": [{ "action":"string","why":"string","impact":"high"|"medium"|"low" }],
+  "twoWeekRoadmap": [{ "skill": "string", "days": "string", "steps": ["string"] }]
+}`;
+  const bullets = (tavily.results || []).map((r) => `${r.title}: ${r.content || ''}`).join('\n');
+  const prompt = `Goal: ${g}
+CANDIDATE CONTEXT:
+${JSON.stringify(context)}
+SEARCH_ANSWER: ${tavily.answer || ''}
+BULLETS:
+${bullets.slice(0, 9000)}`;
+
+  try {
+    const intel = tavily.ok
+      ? await callGeminiStructuredJSON(system, prompt, 2200)
+      : { trends: ['Tavily temporarily unavailable.'], recruiterWantsNow: [], whatToDoNow: [], twoWeekRoadmap: [] };
+
+    if (tavily.ok) {
+      const doc = {
+        id: `role_intel__${userId}__${cacheKey}`,
+        userId,
+        roleKey: cacheKey,
+        goal: g,
+        intel,
+        updatedAt: nowIso(),
+      };
+      const updated = await updateOne(COL_ROLE_INTEL_CACHE, (x) => x.roleKey === cacheKey && x.userId === userId, doc);
+      if (!updated) await insertOne(COL_ROLE_INTEL_CACHE, doc);
+      return res.json({ goal: g, tavilyOk: true, cached: false, fetchedAt: doc.updatedAt, intel, personalized: true });
+    }
+
+    if (cached) {
+      return res.json({
+        goal: g,
+        tavilyOk: false,
+        cached: true,
+        fetchedAt: cached.updatedAt,
+        intel: cached.intel,
+        personalized: true,
+        warning: 'Live Tavily fetch failed; showing cached personalized intel.',
+      });
+    }
+
+    return res.json({ goal: g, tavilyOk: false, cached: false, fetchedAt: nowIso(), intel, personalized: true });
+  } catch (e) {
+    if (cached) {
+      return res.json({
+        goal: g,
+        tavilyOk: false,
+        cached: true,
+        fetchedAt: cached.updatedAt,
+        intel: cached.intel,
+        personalized: true,
+        warning: 'Live generation failed; showing cached personalized intel.',
+      });
+    }
+    return res.status(500).json({ error: e.message || 'Failed personalized role intelligence' });
   }
 });
 
 router.post('/resume/jd-scan', authMiddleware, async (req, res) => {
   const userId = req.userId;
   const { jdText = '', resumeText = '' } = req.body || {};
+  const profile = await findOne(COL_RESUME_PROFILE, (x) => x.userId === userId);
+  const eduData = await findOne('edu_data', (x) => x.userId === userId);
+  const socratic = await findAll('career_socratic_sessions', (x) => x.userId === userId);
+  const attempts = await findAll(COL_ATTEMPTS, (x) => x.userId === userId);
   const jd = String(jdText || '').slice(0, 60000);
-  const resume = String(resumeText || '').slice(0, 120000);
+  const resume = String(resumeText || profile?.extractedText || '').slice(0, 120000);
   if (!jd.trim()) return res.status(400).json({ error: 'jdText required' });
+  if (!resume.trim()) return res.status(400).json({ error: 'No resume text found. Upload PDF or paste text first.' });
 
   let chunks = [];
   try {
@@ -762,15 +1124,29 @@ router.post('/resume/jd-scan', authMiddleware, async (req, res) => {
   }
   const resumeHints = chunks.length ? chunks.map((c) => c.text).join('\n---\n').slice(0, 6000) : resume.slice(0, 4000);
 
-  const system = `Compare JOB DESCRIPTION to RESUME. Return STRICT JSON:
+  const system = `Compare JOB DESCRIPTION to RESUME line-by-line. Return STRICT JSON:
 {
   "matchScore": 0-100,
   "matchedSkills": ["string"],
+  "partialSkills": ["string"],
   "missingSkills": ["string"],
+  "green": ["string"],
+  "yellow": ["string"],
+  "red": ["string"],
+  "resources": [{ "skill":"string","url":"string","title":"string" }],
   "weakSections": ["string"],
-  "starRewrites": [{ "before": "string", "after": "string", "rationale": "string" }]
+  "starRewrites": [{ "before": "string", "after": "string", "rationale": "string" }],
+  "interviewPrepTopics": ["string"]
 }`;
-  const prompt = `JOB DESCRIPTION:\n${jd}\n\nRESUME:\n${resume}\n\nNOTES_FROM_RAG_CHUNKS (may be partial):\n${resumeHints}`;
+  const prompt = `JOB DESCRIPTION:\n${jd}\n\nRESUME:\n${resume}\n\nNOTES_FROM_RAG_CHUNKS (may be partial):\n${resumeHints}
+
+USER CONTEXT:
+${JSON.stringify({
+    semester: eduData?.semester || null,
+    targetRole: profile?.goal || null,
+    attempts: attempts.length,
+    socraticTopics: socratic.map((s) => s.topic).filter(Boolean).slice(0, 10),
+  })}`;
   try {
     const scan = await callGeminiStructuredJSON(system, prompt, 3000);
     const row = { id: randomUUID(), userId, scan, createdAt: nowIso() };
@@ -835,6 +1211,89 @@ ${resume}
     res.json({ kit, savedId: row.id });
   } catch (e) {
     res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/resume/recruiter-sim/start', authMiddleware, async (req, res) => {
+  const userId = req.userId;
+  const { resumeText = '', goal = 'Software Engineer' } = req.body || {};
+  const profile = await findOne(COL_RESUME_PROFILE, (x) => x.userId === userId);
+  const text = String(resumeText || profile?.extractedText || '').slice(0, 120000);
+  if (!text.trim()) return res.status(400).json({ error: 'Resume text is required for recruiter simulation.' });
+  const recentSessions = (await findAll(COL_RECRUITER_SIM, (x) => x.userId === userId))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3);
+  const avoidQuestions = recentSessions.flatMap((s) => s.questions || []).slice(0, 15);
+  const variationSeed = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const system = `You are a strict recruiter doing a first screening call. Return STRICT JSON:
+{
+  "questions": ["q1","q2","q3","q4","q5"]
+}
+Questions must be specific to the candidate's resume bullets and target role.
+Do not repeat any question listed in AVOID_QUESTIONS. Make wording fresh and scenario-specific.`;
+  const prompt = `TARGET ROLE: ${goal}
+VARIATION_SEED: ${variationSeed}
+AVOID_QUESTIONS: ${JSON.stringify(avoidQuestions)}
+RESUME:
+${text}`;
+  try {
+    const data = await callGeminiStructuredJSON(system, prompt, 1200);
+    const questions = Array.isArray(data?.questions) ? data.questions.slice(0, 5).map((q) => String(q || '').trim()).filter(Boolean) : [];
+    if (questions.length < 5) return res.status(500).json({ error: 'Could not generate 5 recruiter questions.' });
+    const session = {
+      id: randomUUID(),
+      userId,
+      goal,
+      resumeVersion: profile?.updatedAt || null,
+      resumeText: text.slice(0, 25000),
+      questions,
+      answers: [],
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+    await insertOne(COL_RECRUITER_SIM, session);
+    res.json({ sessionId: session.id, questions });
+  } catch (e) {
+    res.status(500).json({ error: e.message || 'Failed to start recruiter sim' });
+  }
+});
+
+router.post('/resume/recruiter-sim/complete', authMiddleware, async (req, res) => {
+  const userId = req.userId;
+  const { sessionId = '', answers = [] } = req.body || {};
+  if (!sessionId) return res.status(400).json({ error: 'sessionId is required' });
+  const session = await findOne(COL_RECRUITER_SIM, (x) => x.userId === userId && x.id === sessionId);
+  if (!session) return res.status(404).json({ error: 'Recruiter sim session not found' });
+  if (!Array.isArray(answers) || answers.length < 5) return res.status(400).json({ error: 'Five answers are required' });
+
+  const system = `You are a real recruiter giving candid feedback. Return STRICT JSON:
+{
+  "whatImpressed": ["string"],
+  "whatRaisedDoubts": ["string"],
+  "resumeFixes": [{ "issue":"string", "fix":"string" }],
+  "answerImprovements": [{ "question":"string", "yourAnswer":"string", "improvedAnswer":"string", "why":"string" }],
+  "overallVerdict": "string"
+}`;
+  const prompt = `TARGET ROLE: ${session.goal}
+QUESTIONS: ${JSON.stringify(session.questions)}
+ANSWERS: ${JSON.stringify(answers).slice(0, 18000)}
+RESUME:
+${String(session.resumeText || '').slice(0, 18000)}`;
+  try {
+    const feedback = await callGeminiStructuredJSON(system, prompt, 1800);
+    const updated = {
+      ...session,
+      answers: answers.slice(0, 5).map((x) => String(x || '').slice(0, 4000)),
+      feedback,
+      completedAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+    await updateOne(COL_RECRUITER_SIM, (x) => x.id === sessionId && x.userId === userId, updated);
+    await awardXp(userId, 75, 'career_recruiter_sim_complete', { world: WORLDS.career });
+    res.json({ feedback, xpAwarded: 75 });
+  } catch (e) {
+    res.status(500).json({ error: e.message || 'Failed to complete recruiter sim' });
   }
 });
 

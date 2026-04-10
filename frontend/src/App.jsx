@@ -25,7 +25,7 @@ import CareerDashboard from './pages/career/CareerDashboard';
 import AlgorithmVisualizer from './pages/career/AlgorithmVisualizer';
 import ProblemArena from './pages/career/ProblemArena';
 import InterviewLab from './pages/career/InterviewLab';
-import ResumeHub from './pages/career/ResumeHub';
+import ResumeHub from './pages/career/ResumeHubV2';
 import RoadmapPage from './features/career-roadmap/RoadmapPage';
 import SocraticChat from './pages/career/SocraticChat';
 

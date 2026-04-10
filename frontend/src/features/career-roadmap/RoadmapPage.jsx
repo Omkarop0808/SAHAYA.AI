@@ -10,7 +10,6 @@ import {
 import OnboardingQuiz from './OnboardingQuiz';
 import ProgressDashboard from './ProgressDashboard';
 import RoadmapVisualization from './RoadmapVisualization';
-import SkillScanTabs from './SkillScanTabs';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function downloadBase64File({ filename, contentBase64, mimeType }) {
@@ -33,7 +32,6 @@ export default function RoadmapPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [expandedId, setExpandedId] = useState(null);
-  const [activeTab, setActiveTab] = useState('planner');
   const [editingQuiz, setEditingQuiz] = useState(false);
 
   const hasRoadmap = Boolean(roadmap?.phases?.length);
@@ -107,7 +105,6 @@ export default function RoadmapPage() {
             <button
               className="career-btn"
               onClick={() => {
-                setActiveTab('planner');
                 setEditingQuiz(true);
               }}
             >
@@ -127,63 +124,48 @@ export default function RoadmapPage() {
         ) : null}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          className="career-btn"
-          onClick={() => setActiveTab('planner')}
-          disabled={activeTab === 'planner'}
-        >
-          Planner
-        </button>
-        <button
-          className="career-btn"
-          onClick={() => setActiveTab('skillscan')}
-          disabled={activeTab === 'skillscan'}
-        >
-          SkillScan
-        </button>
+      <div className="career-card p-4 border border-[rgba(139,92,246,0.25)] bg-[rgba(139,92,246,0.05)]">
+        <div className="text-xs font-extrabold uppercase tracking-[0.24em] text-white/55">Planner mode</div>
+        <div className="mt-1 text-sm text-white/75">
+          Focus on one clear roadmap with interactive phase expansion, progress tracking, and daily execution clarity.
+        </div>
       </div>
 
       {error ? <div className="career-card text-red-300 border-red-500/40">{error}</div> : null}
 
       <AnimatePresence mode="wait">
-        {activeTab === 'planner' ? (
-          <motion.div
-            key="planner"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: 0.18 } }}
-            exit={{ opacity: 0, y: -4, transition: { duration: 0.12 } }}
-          >
-            {!hasRoadmap || editingQuiz ? (
-              <OnboardingQuiz
-                initial={roadmap?.quiz}
-                loading={loading}
-                onSubmit={handleGenerate}
-                onCancel={hasRoadmap ? () => setEditingQuiz(false) : undefined}
-              />
-            ) : (
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2">
-                  <RoadmapVisualization phases={phases} expandedId={expandedId} setExpandedId={setExpandedId} onToggleItem={onToggleItem} />
-                </div>
-                <div>
-                  <ProgressDashboard roadmap={roadmap} today={today} />
+        <motion.div
+          key="planner"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: 0.18 } }}
+          exit={{ opacity: 0, y: -4, transition: { duration: 0.12 } }}
+        >
+          {!hasRoadmap || editingQuiz ? (
+            <OnboardingQuiz
+              initial={roadmap?.quiz}
+              loading={loading}
+              onSubmit={handleGenerate}
+              onCancel={hasRoadmap ? () => setEditingQuiz(false) : undefined}
+            />
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div className="xl:col-span-2">
+                <RoadmapVisualization phases={phases} expandedId={expandedId} setExpandedId={setExpandedId} onToggleItem={onToggleItem} />
+              </div>
+              <div className="space-y-4">
+                <ProgressDashboard roadmap={roadmap} today={today} />
+                <div className="career-card p-4">
+                  <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45 mb-2">Interaction tips</div>
+                  <ul className="text-sm text-white/70 list-disc pl-5 space-y-1">
+                    <li>Open one phase at a time and finish 2 items today.</li>
+                    <li>Mark tasks complete to update your momentum instantly.</li>
+                    <li>Regenerate only when your role target changes.</li>
+                  </ul>
                 </div>
               </div>
-            )}
-          </motion.div>
-        ) : null}
-
-        {activeTab === 'skillscan' ? (
-          <motion.div
-            key="skillscan"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: 0.18 } }}
-            exit={{ opacity: 0, y: -4, transition: { duration: 0.12 } }}
-          >
-            <SkillScanTabs />
-          </motion.div>
-        ) : null}
+            </div>
+          )}
+        </motion.div>
       </AnimatePresence>
     </div>
   );

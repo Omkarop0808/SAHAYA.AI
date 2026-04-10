@@ -70,8 +70,26 @@ export async function analyzeResume(payload) {
   return data;
 }
 
+export async function getSavedResumeProfile() {
+  const { data } = await api.get('/career/resume/profile');
+  return data;
+}
+
+export async function uploadResumePdf(file) {
+  const formData = new FormData();
+  formData.append('resumePdf', file);
+  const { data } = await api.postMultipart('/career/resume/upload-pdf', formData);
+  return data;
+}
+
 export async function getRoleIntelligence(goal) {
-  const { data } = await api.get('/career/resume/role-intelligence', { params: { goal } });
+  const q = encodeURIComponent(goal || 'Software Engineer');
+  const { data } = await api.get(`/career/resume/role-intelligence?goal=${q}`);
+  return data;
+}
+
+export async function getRoleIntelligencePersonalized(payload) {
+  const { data } = await api.post('/career/resume/role-intelligence', payload);
   return data;
 }
 
@@ -82,6 +100,16 @@ export async function scanJobDescription(payload) {
 
 export async function buildApplicationKit(payload) {
   const { data } = await api.post('/career/resume/application-kit', payload);
+  return data;
+}
+
+export async function startRecruiterSim(payload) {
+  const { data } = await api.post('/career/resume/recruiter-sim/start', payload);
+  return data;
+}
+
+export async function completeRecruiterSim(payload) {
+  const { data } = await api.post('/career/resume/recruiter-sim/complete', payload);
   return data;
 }
 
