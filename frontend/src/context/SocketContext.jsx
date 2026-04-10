@@ -19,7 +19,8 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    const s = io(import.meta.env.VITE_BACKEND_URL || 'http://localhost:5006', {
+    const backendBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+    const s = io(backendBaseUrl, {
       withCredentials: true
     });
     setSocket(s);

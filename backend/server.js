@@ -95,22 +95,39 @@ const io = new Server(httpServer, {
 });
 
 let gdLobby = [];
+let gdReadyRooms = {}; // { roomId: { participants: [], readyCount: 0, readyUsers: [] } }
 
 io.on('connection', (socket) => {
   socket.on('join_gd_lobby', (data) => {
+    const existing = gdLobby.findIndex(u => u.socketId === socket.id);
+    if (existing !== -1) gdLobby.splice(existing, 1);
+
     gdLobby.push({ socketId: socket.id, ...data });
     
-    socket.broadcast.emit('gd_lobby_notification', {
-       message: `${data.name || 'A user'} is searching for GD members. Join now!`
-    });
+    if (data.requestedSize > 1) {
+       socket.broadcast.emit('gd_lobby_notification', {
+          message: `${data.name || 'Student'} is starting a ${data.requestedSize}-person GD on ${data.topic || 'General Tech'}. Join now!`
+       });
+    }
 
     const getWaitlist = () => gdLobby.map(u => ({ name: u.name, topic: u.topic, requestedSize: u.requestedSize }));
     io.emit('lobby_update', getWaitlist());
 
-    if (gdLobby.length >= data.requestedSize) {
-       const roomParticipants = gdLobby.splice(0, data.requestedSize);
+    const compatibleUsers = gdLobby.filter(u => u.requestedSize === data.requestedSize && u.topic === data.topic);
+
+    if (compatibleUsers.length >= data.requestedSize) {
+       const roomParticipants = compatibleUsers.slice(0, data.requestedSize);
        const roomId = `gd_room_${Date.now()}`;
        
+       gdLobby = gdLobby.filter(u => !roomParticipants.includes(u));
+
+       // Initialize the Ready Room pending state
+       gdReadyRooms[roomId] = {
+           participants: roomParticipants,
+           readyCount: 0,
+           readyUsers: []
+       };
+
        roomParticipants.forEach(p => {
           io.to(p.socketId).emit('gd_match_found', { roomId, participants: roomParticipants });
        });
@@ -118,7 +135,44 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('gd_player_ready', ({ roomId }) => {
+     const room = gdReadyRooms[roomId];
+     if (!room) return;
+
+     if (!room.readyUsers.includes(socket.id)) {
+         room.readyUsers.push(socket.id);
+         room.readyCount += 1;
+
+         // Broadcast the update to all matched participants in this pending room
+         room.participants.forEach(p => {
+             io.to(p.socketId).emit('gd_ready_update', room.readyCount);
+         });
+
+         // If everyone is ready, transition them!
+         if (room.readyCount >= room.participants.length) {
+             room.participants.forEach(p => {
+                 io.to(p.socketId).emit('gd_start_room', { roomId });
+             });
+             delete gdReadyRooms[roomId];
+         }
+     }
+  });
+
   socket.on('disconnect', () => {
+    // Check if they were in a pending ready room
+    for (const [roomId, room] of Object.entries(gdReadyRooms)) {
+        if (room.participants.some(p => p.socketId === socket.id)) {
+            // Cancel the room
+            const survivingParticipants = room.participants.filter(p => p.socketId !== socket.id);
+            survivingParticipants.forEach(p => {
+                io.to(p.socketId).emit('gd_match_cancelled');
+                // Auto requeue survivors back into lobby
+                gdLobby.push({ socketId: p.socketId, name: p.name, requestedSize: p.requestedSize, topic: p.topic });
+            });
+            delete gdReadyRooms[roomId];
+        }
+    }
+
     gdLobby = gdLobby.filter(user => user.socketId !== socket.id);
     const currentWaitlist = gdLobby.map(u => ({ name: u.name, topic: u.topic, requestedSize: u.requestedSize }));
     io.emit('lobby_update', currentWaitlist);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { useNavigate } from 'react-router-dom';
 import { Users, X } from 'lucide-react';
@@ -8,12 +8,20 @@ export default function GlobalNotifications() {
   const socket = useSocket();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
+  const lastMsgRef = useRef({ text: '', ts: 0 });
 
   useEffect(() => {
     if (!socket) return;
 
     const handleNotification = (data) => {
-      const id = Date.now();
+      // Dedup: ignore identical messages arriving within 2 seconds
+      const now = Date.now();
+      if (data.message === lastMsgRef.current.text && now - lastMsgRef.current.ts < 2000) {
+        return;
+      }
+      lastMsgRef.current = { text: data.message, ts: now };
+
+      const id = now;
       setNotifications(prev => [...prev, { id, ...data }]);
       
       // Auto dismiss after 10 seconds
