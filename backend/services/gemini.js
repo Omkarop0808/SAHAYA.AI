@@ -237,22 +237,40 @@ export async function callGeminiJSON(systemPrompt, userPrompt, optionsOrToken = 
   const raw = await callGemini(systemPrompt, userPrompt, { maxTokens, jsonMode: true, skipGroq });
   const parsed = safeParseJSON(raw);
   if (parsed) return parsed;
+  
+  console.error(`[AI ERROR] First attempt failed to parse JSON. Raw output length: ${raw?.length}. Attempting repair...`);
+  
   const repair = await callGemini(
     'You output only valid JSON. No markdown.',
-    `Fix this to valid JSON only:\n${raw}`,
-    { maxTokens: 2048, jsonMode: true, skipGroq }
+    `Fix this to valid JSON only (do not include markdown fences or any conversational text):\n${raw}`,
+    { maxTokens: Math.min(maxTokens, 3500), jsonMode: true, skipGroq: false }
   );
   const again = safeParseJSON(repair);
   if (again) return again;
-  throw new Error('AI returned non-JSON output.');
+  
+  console.error(`[AI ERROR] Repair attempt also failed to produce valid JSON. Raw repair output length: ${repair?.length}.`);
+  throw new Error('AI returned non-JSON output. Please try again.');
 }
 
 function safeParseJSON(raw) {
   if (!raw || typeof raw !== 'string') return null;
-  const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim();
+  const trimmed = raw.trim();
+
+  // 1. Try to parse directly (covers pure JSON or API stripped mode)
+  let cleaned = trimmed.replace(/```json\n?|\n?```/g, '').trim();
   try {
     return JSON.parse(cleaned);
-  } catch {
+  } catch (e1) {
+    // 2. Fallback: try to extract substring between first { and last }
+    const start = trimmed.indexOf('{');
+    const end = trimmed.lastIndexOf('}');
+    if (start !== -1 && end !== -1 && end >= start) {
+      try {
+        return JSON.parse(trimmed.substring(start, end + 1));
+      } catch (e2) {
+        return null; // Both failed
+      }
+    }
     return null;
   }
 }

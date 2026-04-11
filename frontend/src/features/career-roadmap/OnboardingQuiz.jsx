@@ -39,8 +39,8 @@ export default function OnboardingQuiz({ initial, onSubmit, loading, onCancel })
 
       <div className="grid md:grid-cols-2 gap-4">
         <label className="space-y-2 text-sm">
-          <span className="text-white/80">Education level</span>
-          <select className="w-full bg-[#0A0A0F] border border-white/15 rounded-[10px] px-3 py-2 text-white" value={form.educationLevel} onChange={(e) => setForm({ ...form, educationLevel: e.target.value })}>
+          <span className="text-[var(--career-text)] text-opacity-80">Education level</span>
+          <select className="w-full bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[10px] px-3 py-2 text-[var(--career-text)]" value={form.educationLevel} onChange={(e) => setForm({ ...form, educationLevel: e.target.value })}>
             <option value="high-school">High School</option>
             <option value="undergraduate">Undergraduate</option>
             <option value="postgraduate">Postgraduate</option>
@@ -50,15 +50,15 @@ export default function OnboardingQuiz({ initial, onSubmit, loading, onCancel })
         </label>
 
         <label className="space-y-2 text-sm">
-          <span className="text-white/80">Target role/domain</span>
-          <select className="w-full bg-[#0A0A0F] border border-white/15 rounded-[10px] px-3 py-2 text-white" value={form.targetRole} onChange={(e) => setForm({ ...form, targetRole: e.target.value })}>
+          <span className="text-[var(--career-text)] text-opacity-80">Target role/domain</span>
+          <select className="w-full bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[10px] px-3 py-2 text-[var(--career-text)]" value={form.targetRole} onChange={(e) => setForm({ ...form, targetRole: e.target.value })}>
             {ROLE_OPTIONS.map((role) => <option key={role} value={role}>{role}</option>)}
           </select>
         </label>
 
         <label className="space-y-2 text-sm">
-          <span className="text-white/80">Timeline goal</span>
-          <select className="w-full bg-[#0A0A0F] border border-white/15 rounded-[10px] px-3 py-2 text-white" value={form.timeline} onChange={(e) => setForm({ ...form, timeline: e.target.value })}>
+          <span className="text-[var(--career-text)] text-opacity-80">Timeline goal</span>
+          <select className="w-full bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[10px] px-3 py-2 text-[var(--career-text)]" value={form.timeline} onChange={(e) => setForm({ ...form, timeline: e.target.value })}>
             <option value="3 months">3 months</option>
             <option value="6 months">6 months</option>
             <option value="1 year">1 year</option>
@@ -67,8 +67,8 @@ export default function OnboardingQuiz({ initial, onSubmit, loading, onCancel })
         </label>
 
         <label className="space-y-2 text-sm">
-          <span className="text-white/80">Learning style</span>
-          <select className="w-full bg-[#0A0A0F] border border-white/15 rounded-[10px] px-3 py-2 text-white" value={form.learningStyle} onChange={(e) => setForm({ ...form, learningStyle: e.target.value })}>
+          <span className="text-[var(--career-text)] text-opacity-80">Learning style</span>
+          <select className="w-full bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[10px] px-3 py-2 text-[var(--career-text)]" value={form.learningStyle} onChange={(e) => setForm({ ...form, learningStyle: e.target.value })}>
             <option value="project-based">Project-based</option>
             <option value="course-based">Course-based</option>
             <option value="reading">Reading</option>
@@ -78,7 +78,7 @@ export default function OnboardingQuiz({ initial, onSubmit, loading, onCancel })
       </div>
 
       <div className="space-y-2">
-        <div className="text-sm text-white/80">Current skills</div>
+        <div className="text-sm text-[var(--career-text)] text-opacity-80">Current skills</div>
         <div className="flex flex-wrap gap-2">
           {SKILL_OPTIONS.map((skill) => (
             <button key={skill} type="button" onClick={() => toggleSkill(skill)} className={`career-chip ${form.skills.includes(skill) ? '' : 'opacity-60'}`}>

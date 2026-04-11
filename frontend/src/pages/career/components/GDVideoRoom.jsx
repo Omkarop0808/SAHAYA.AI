@@ -140,17 +140,17 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
 
   if (initError) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-white h-[60vh] bg-white/[0.02] border border-amber-500/30 rounded-2xl">
+      <div className="flex flex-col items-center justify-center p-12 text-[var(--career-text)] h-[60vh] bg-[var(--career-surface)] border border-amber-500/30 rounded-2xl">
         <h2 className="text-3xl font-bold mb-4 text-amber-400">Video Room Failed to Initialize</h2>
-        <p className="text-gray-400 max-w-lg text-center mb-4">
+        <p className="text-[var(--career-muted)] max-w-lg text-center mb-4">
           The video conferencing engine could not start. This is commonly caused by:
         </p>
-        <ul className="text-sm text-white/60 list-disc list-inside mb-6 max-w-md space-y-1">
+        <ul className="text-sm text-[var(--career-muted)] list-disc list-inside mb-6 max-w-md space-y-1">
           <li>Two browsers on the <strong>same device</strong> fighting for the camera/mic hardware</li>
           <li>Camera or microphone permissions being blocked</li>
           <li>Invalid or missing ZegoCloud API credentials</li>
         </ul>
-        <div className="bg-gray-900 p-4 rounded-lg border border-gray-700 w-full max-w-lg mb-6">
+        <div className="bg-[var(--career-surface)] p-4 rounded-lg border border-[var(--career-border)] w-full max-w-lg mb-6">
           <code className="text-xs font-mono text-red-400 block break-all whitespace-pre-wrap">
             {initError}
           </code>
@@ -158,7 +158,7 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
         <div className="flex gap-3">
           <button 
             onClick={() => window.location.reload()}
-            className="px-6 py-2 bg-white/10 text-white font-medium rounded-lg border border-white/20 hover:bg-white/20 transition-all"
+            className="px-6 py-2 bg-[var(--career-surface)] text-[var(--career-text)] font-medium rounded-lg border border-[var(--career-border)] hover:bg-[var(--career-border)] hover:bg-opacity-30 transition-all"
           >
             Retry
           </button>
@@ -167,7 +167,7 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
               hasJoinedRef.current = true; // Allow handleComplete to proceed for skip
               handleComplete();
             }}
-            className="px-6 py-2 bg-[var(--career-accent)] text-white font-medium rounded-lg shadow-lg hover:opacity-80 transition-all"
+            className="px-6 py-2 bg-[var(--career-accent)] text-[var(--career-text)] font-medium rounded-lg shadow-lg hover:opacity-80 transition-all"
           >
             Skip &amp; Get AI Feedback
           </button>
@@ -178,9 +178,9 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
 
   if (!import.meta.env.VITE_ZEGO_APP_ID || import.meta.env.VITE_ZEGO_APP_ID.includes('your_real')) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-white h-[60vh] bg-white/[0.02] border border-red-500/20 rounded-2xl">
+      <div className="flex flex-col items-center justify-center p-12 text-[var(--career-text)] h-[60vh] bg-[var(--career-surface)] border border-red-500/20 rounded-2xl">
         <h2 className="text-3xl font-bold mb-4 text-red-400">Missing Video Provider Keys</h2>
-        <p className="text-gray-400 max-w-lg text-center mb-6">
+        <p className="text-[var(--career-muted)] max-w-lg text-center mb-6">
           You successfully matched with peers, but the live WebRTC room couldn't be launched because the <strong>ZegoCloud</strong> API keys are missing in your frontend <code>.env</code>.
         </p>
         <button 
@@ -188,7 +188,7 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
             hasJoinedRef.current = true;
             handleComplete();
           }}
-          className="px-6 py-2 bg-[var(--career-accent)] text-white font-medium rounded-lg shadow-lg hover:opacity-80 transition-all"
+          className="px-6 py-2 bg-[var(--career-accent)] text-[var(--career-text)] font-medium rounded-lg shadow-lg hover:opacity-80 transition-all"
         >
           Simulate GD Completion &amp; Get Feedback
         </button>
@@ -203,33 +203,33 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
   };
 
   return (
-    <div className="relative w-full h-[85vh] bg-gray-950 rounded-xl overflow-hidden flex flex-col border border-gray-800 shadow-2xl">
+    <div className="relative w-full h-[85vh] bg-[var(--career-surface)] rounded-xl overflow-hidden flex flex-col border border-[var(--career-border)] shadow-2xl">
       {/* Absolute Loading Overlay. We do this instead of returning a different node tree, so Zego Container isn't unmounted before destruction, preventing null node crashes */}
       {isAnalyzing && (
-        <div className="absolute inset-0 z-50 bg-gray-900 bg-opacity-95 flex flex-col items-center justify-center p-12 text-white backdrop-blur-sm">
+        <div className="absolute inset-0 z-50 bg-[var(--career-surface)] bg-opacity-95 flex flex-col items-center justify-center p-12 text-[var(--career-text)] backdrop-blur-sm">
           <h2 className="text-3xl font-bold mb-4">Generating AI Performance Report</h2>
           <div className="animate-pulse h-12 w-12 bg-[var(--career-accent)] rounded-full mb-4"></div>
-          <p className="text-gray-400">Processing transcripts and evaluating your facial metrics...</p>
+          <p className="text-[var(--career-muted)]">Processing transcripts and evaluating your facial metrics...</p>
         </div>
       )}
 
-      <div className="flex justify-between items-center bg-gray-900 p-4 shrink-0 relative z-10 box-border">
-        <div className="flex items-center gap-4 bg-gray-800/80 px-4 py-2 rounded-lg border border-gray-700">
+      <div className="flex justify-between items-center bg-[var(--career-surface)] p-4 shrink-0 relative z-10 box-border">
+        <div className="flex items-center gap-4 bg-[var(--career-surface)] bg-opacity-80 px-4 py-2 rounded-lg border border-[var(--career-border)]">
           <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse hidden sm:block"></div>
           <div className="flex flex-col">
-            <span className="text-gray-400 text-xs font-medium uppercase tracking-wider">Group Discussion Topic</span>
-            <h3 className="text-white font-bold text-lg sm:text-xl leading-tight">{topic}</h3>
+            <span className="text-[var(--career-muted)] text-xs font-medium uppercase tracking-wider">Group Discussion Topic</span>
+            <h3 className="text-[var(--career-text)] font-bold text-lg sm:text-xl leading-tight">{topic}</h3>
           </div>
         </div>
         
         <div className="flex items-center gap-4 shrink-0">
-          <div className={`px-4 py-2 rounded-lg font-mono font-bold text-lg border ${timeLeft < 60 ? 'bg-red-500/10 text-red-400 border-red-500/30 animate-pulse' : 'bg-gray-800 text-emerald-400 border-gray-700'}`}>
+          <div className={`px-4 py-2 rounded-lg font-mono font-bold text-lg border ${timeLeft < 60 ? 'bg-red-500/10 text-red-400 border-red-500/30 animate-pulse' : 'bg-[var(--career-surface)] text-emerald-400 border-[var(--career-border)]'}`}>
             {formatTime(timeLeft)}
           </div>
           <button 
             onClick={handleComplete}
             disabled={isAnalyzing}
-            className="px-6 py-2 bg-gradient-to-r from-red-600 to-rose-700 text-white font-medium rounded-lg shadow-lg shadow-red-900/20 hover:opacity-90 disabled:opacity-50 transition-all active:scale-95"
+            className="px-6 py-2 bg-gradient-to-r from-red-600 to-rose-700 text-[var(--career-text)] font-medium rounded-lg shadow-lg shadow-red-900/20 hover:opacity-90 disabled:opacity-50 transition-all active:scale-95"
           >
             End Discussion
           </button>
@@ -239,7 +239,7 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
       <video ref={localVideoRef} autoPlay muted playsInline className="opacity-0 absolute pointer-events-none w-0 h-0" />
        
       {/* We keep this mounted at all times securely */}
-      <div ref={containerRef} className="w-full h-full flex-grow bg-black relative z-0"></div>
+      <div ref={containerRef} className="w-full h-full flex-grow bg-transparent relative z-0"></div>
     </div>
   );
 }

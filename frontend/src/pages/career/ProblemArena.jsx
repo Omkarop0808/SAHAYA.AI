@@ -18,7 +18,7 @@ import { BookOpen, Brain, Sparkles, Swords, Trophy, Users } from 'lucide-react';
 
 function ModeTabs({ mode, onMode }) {
   return (
-    <div className="flex gap-2 p-1 rounded-xl border border-white/10 bg-black/25 w-fit">
+    <div className="flex gap-2 p-1 rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] w-fit mt-3 shadow-sm">
       {[
         { id: 'solo', label: 'Solo' },
         { id: 'duel', label: 'Live duel' },
@@ -28,7 +28,7 @@ function ModeTabs({ mode, onMode }) {
           type="button"
           onClick={() => onMode(t.id)}
           className={`px-4 py-2 rounded-lg text-xs font-extrabold uppercase tracking-widest transition-all ${
-            mode === t.id ? 'bg-[rgba(139,92,246,0.35)] text-white border border-[rgba(139,92,246,0.45)]' : 'text-white/55 hover:text-white'
+            mode === t.id ? 'bg-[rgba(139,92,246,0.15)] text-[var(--career-text)] border border-[var(--career-border)]' : 'text-[var(--career-muted)] hover:text-[var(--career-text)]'
           }`}
         >
           {t.label}
@@ -247,9 +247,9 @@ export default function ProblemArena() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">DSA Arena</div>
-            <h1 className="font-display font-extrabold text-3xl mt-1">Live duels</h1>
-            <p className="text-sm text-white/65 mt-2 max-w-2xl">
+            <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">DSA Arena</div>
+            <h1 className="font-display font-extrabold text-3xl mt-1 text-[var(--career-text)]">Live duels</h1>
+            <p className="text-sm text-[var(--career-muted)] mt-2 max-w-2xl">
               Same Monaco editor as solo mode. Host starts the match; first passing solution earns bonus XP. Updates sync via fast refresh polling (add Supabase Realtime for instant events).
             </p>
           </div>
@@ -261,21 +261,21 @@ export default function ProblemArena() {
         {!room ? (
           <div className="career-card p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="rounded-[12px] border border-[rgba(139,92,246,0.3)] p-5 bg-[#111118]/80">
-                <div className="font-display font-extrabold text-xl">Create a room</div>
-                <p className="text-sm text-white/65 mt-2">Share the code with your opponent.</p>
+              <div className="rounded-[12px] border border-[var(--career-border)] p-5 bg-[var(--career-surface)]">
+                <div className="font-display font-extrabold text-xl text-[var(--career-text)]">Create a room</div>
+                <p className="text-sm text-[var(--career-muted)] mt-2">Share the code with your opponent.</p>
                 <button type="button" onClick={startCreateRoom} disabled={duelLoading} className="career-btn mt-4">
                   <Swords size={16} /> {duelLoading ? 'Creating…' : 'Create'}
                 </button>
               </div>
-              <div className="rounded-[12px] border border-[rgba(139,92,246,0.3)] p-5 bg-[#111118]/80">
-                <div className="font-display font-extrabold text-xl">Join a room</div>
-                <p className="text-sm text-white/65 mt-2">Enter a room code.</p>
+              <div className="rounded-[12px] border border-[var(--career-border)] p-5 bg-[var(--career-surface)]">
+                <div className="font-display font-extrabold text-xl text-[var(--career-text)]">Join a room</div>
+                <p className="text-sm text-[var(--career-muted)] mt-2">Enter a room code.</p>
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                   <input
                     value={roomCodeInput}
                     onChange={(e) => setRoomCodeInput(e.target.value)}
-                    className="flex-1 min-w-[160px] bg-black/30 border border-white/10 rounded-[12px] px-4 py-3 text-sm text-white outline-none"
+                    className="flex-1 min-w-[160px] bg-black/5 border border-[var(--career-border)] rounded-[12px] px-4 py-3 text-sm text-[var(--career-text)] outline-none focus:border-[var(--career-accent2)] transition-colors"
                     placeholder="ROOM CODE"
                   />
                   <button type="button" onClick={startJoinRoom} disabled={duelLoading || !roomCodeInput.trim()} className="career-btn">
@@ -289,9 +289,9 @@ export default function ProblemArena() {
           <div className="career-card p-6 space-y-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Room</div>
-                <div className="font-display font-extrabold text-2xl mt-1">{room.roomCode}</div>
-                <p className="text-sm text-white/65 mt-2">Participants: {room.participants?.length ?? 0}</p>
+                <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Room</div>
+                <div className="font-display font-extrabold text-2xl mt-1 text-[var(--career-text)]">{room.roomCode}</div>
+                <p className="text-sm text-[var(--career-muted)] mt-2">Participants: {room.participants?.length ?? 0}</p>
               </div>
               <div className="flex gap-2">
                 {(!room.status || room.status.phase === 'lobby') && (
@@ -316,14 +316,14 @@ export default function ProblemArena() {
             {duelProblem && room.status?.phase === 'active' && (
               <>
                 <div>
-                  <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">{duelProblem.topic} · {duelProblem.difficulty}</div>
-                  <h2 className="font-display font-extrabold text-xl mt-1">{duelProblem.title}</h2>
-                  <p className="text-sm text-white/65 mt-2 whitespace-pre-wrap">{duelProblem.prompt}</p>
+                  <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">{duelProblem.topic} · {duelProblem.difficulty}</div>
+                  <h2 className="font-display font-extrabold text-xl mt-1 text-[var(--career-text)]">{duelProblem.title}</h2>
+                  <p className="text-sm text-[var(--career-muted)] mt-2 whitespace-pre-wrap">{duelProblem.prompt}</p>
                 </div>
-                <div className="rounded-[12px] border border-white/10 overflow-hidden h-[280px]">
+                <div className="rounded-[12px] border border-[var(--career-border)] overflow-hidden h-[280px]">
                   <Editor
                     height="280px"
-                    theme="vs-dark"
+                    theme="light"
                     defaultLanguage="javascript"
                     value={code}
                     onChange={(v) => setCode(v ?? '')}
@@ -337,13 +337,13 @@ export default function ProblemArena() {
             )}
 
             {room.status?.winner && (
-              <div className="rounded-[12px] border border-[rgba(6,182,212,0.35)] p-4 bg-[rgba(6,182,212,0.06)] text-sm text-white/85">
+              <div className="rounded-[12px] border border-[rgba(6,182,212,0.35)] p-4 bg-[rgba(6,182,212,0.06)] text-sm text-[var(--career-text)]">
                 Duel complete. Winner recorded (first to pass all tests).
               </div>
             )}
 
             {runResult && !selected && (
-              <div className="rounded-[12px] border border-white/10 p-4 bg-white/[0.03] text-sm text-white/80">
+              <div className="rounded-[12px] border border-[var(--career-border)] p-4 bg-[var(--career-surface)] text-sm text-[var(--career-text)]">
                 Tests: {runResult.passed}/{runResult.total}
               </div>
             )}
@@ -357,9 +357,9 @@ export default function ProblemArena() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">DSA Arena</div>
-          <h1 className="font-display font-extrabold text-3xl mt-1">Solo practice</h1>
-          <p className="text-sm text-white/65 mt-2 max-w-2xl">
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">DSA Arena</div>
+          <h1 className="font-display font-extrabold text-3xl mt-1 text-[var(--career-text)]">Solo practice</h1>
+          <p className="text-sm text-[var(--career-muted)] mt-2 max-w-2xl">
             Monaco editor, three-tier AI hints on Groq, and Gemini-powered code review after submission.
           </p>
         </div>
@@ -368,9 +368,9 @@ export default function ProblemArena() {
 
       {daily?.id && (
         <div className="career-card p-4 flex flex-wrap items-center justify-between gap-3 border border-[rgba(6,182,212,0.25)]">
-          <div className="text-sm text-white/80">
+          <div className="text-sm text-[var(--career-text)]">
             <span className="font-extrabold text-[var(--career-accent2)]">Daily challenge:</span> {daily.title}
-            {daily.bonusXp ? <span className="text-white/55"> · +{daily.bonusXp} XP on pass</span> : null}
+            {daily.bonusXp ? <span className="text-[var(--career-muted)] mt-1 ml-1 inline-block"> · +{daily.bonusXp} XP on pass</span> : null}
           </div>
           <button
             type="button"
@@ -389,15 +389,15 @@ export default function ProblemArena() {
         <div className="career-card p-5 xl:col-span-1">
           <div className="flex items-center justify-between gap-4 mb-4">
             <div>
-              <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Problem set</div>
-              <div className="font-display font-extrabold text-xl mt-1">Curated</div>
+              <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Problem set</div>
+              <div className="font-display font-extrabold text-xl mt-1 text-[var(--career-text)]">Curated</div>
             </div>
             <div className="career-chip">
               <Trophy size={14} /> {state.problems.length}
             </div>
           </div>
 
-          <div className="text-xs text-white/55 mb-3">Topics: {topics.join(', ') || '—'}</div>
+          <div className="text-xs text-[var(--career-muted)] mb-3">Topics: {topics.join(', ') || '—'}</div>
           <div className="space-y-2 max-h-[70vh] overflow-auto pr-1">
             {state.problems.map((p) => (
               <button
@@ -405,15 +405,15 @@ export default function ProblemArena() {
                 type="button"
                 onClick={() => onSelect(p)}
                 className={`w-full text-left px-4 py-3 rounded-[12px] border transition-colors ${
-                  selected?.id === p.id ? 'border-[rgba(6,182,212,0.45)] bg-white/[0.08]' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]'
+                  selected?.id === p.id ? 'border-[var(--career-border)] bg-black/[0.04]' : 'border-[var(--career-border)] bg-[var(--career-surface)] hover:bg-black/[0.02]'
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="font-semibold truncate">{p.title}</div>
-                    <div className="text-xs text-white/55 mt-1">{p.topic} · {p.difficulty}</div>
+                    <div className="font-semibold truncate text-[var(--career-text)]">{p.title}</div>
+                    <div className="text-xs text-[var(--career-muted)] mt-1">{p.topic} · {p.difficulty}</div>
                   </div>
-                  <BookOpen size={18} className="text-white/40 flex-shrink-0 mt-0.5" />
+                  <BookOpen size={18} className="text-[var(--career-muted)] flex-shrink-0 mt-0.5" />
                 </div>
               </button>
             ))}
@@ -422,16 +422,16 @@ export default function ProblemArena() {
 
         <div className="career-card p-6 xl:col-span-2">
           {!selected ? (
-            <div className="text-sm text-white/60 border border-white/10 rounded-[12px] p-6 bg-white/[0.03]">
+            <div className="text-sm text-[var(--career-muted)] border border-[var(--career-border)] rounded-[12px] p-6 bg-[var(--career-surface)]">
               Select a problem. Use the hint ladder (nudge → approach → full). Submit for structured review.
             </div>
           ) : (
             <div className="space-y-5">
               <div className="flex items-start justify-between gap-6 flex-wrap">
                 <div className="min-w-0">
-                  <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">{selected.topic} · {selected.difficulty}</div>
-                  <h2 className="font-display font-extrabold text-2xl mt-1">{selected.title}</h2>
-                  <p className="text-sm text-white/65 mt-2 whitespace-pre-wrap">{selected.prompt}</p>
+                  <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">{selected.topic} · {selected.difficulty}</div>
+                  <h2 className="font-display font-extrabold text-2xl mt-1 text-[var(--career-text)]">{selected.title}</h2>
+                  <p className="text-sm text-[var(--career-muted)] mt-2 whitespace-pre-wrap">{selected.prompt}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <button type="button" onClick={onRun} disabled={submitting} className="career-btn">
@@ -445,10 +445,10 @@ export default function ProblemArena() {
                 </div>
               </div>
 
-              <div className="rounded-[12px] border border-white/10 overflow-hidden h-[280px]">
+              <div className="rounded-[12px] border border-[var(--career-border)] overflow-hidden h-[280px]">
                 <Editor
                   height="280px"
-                  theme="vs-dark"
+                  theme="light"
                   defaultLanguage="javascript"
                   value={code}
                   onChange={(v) => setCode(v ?? '')}
@@ -472,29 +472,29 @@ export default function ProblemArena() {
               {hint && (
                 <div className="border border-[rgba(6,182,212,0.25)] bg-[rgba(6,182,212,0.06)] rounded-[12px] p-5">
                   <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-accent2)] mb-2">AI hint (Groq)</div>
-                  <div className="text-sm text-white/80 whitespace-pre-wrap">{hint}</div>
+                  <div className="text-sm text-[var(--career-text)] whitespace-pre-wrap">{hint}</div>
                 </div>
               )}
 
               {review && (
                 <div className="border border-[rgba(139,92,246,0.3)] bg-[rgba(139,92,246,0.06)] rounded-[12px] p-5">
                   <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-accent)] mb-2">AI review (Gemini)</div>
-                  <div className="text-sm text-white/80 whitespace-pre-wrap">{review.summary || review}</div>
+                  <div className="text-sm text-[var(--career-text)] whitespace-pre-wrap">{review.summary || review}</div>
                   {review.complexity && (
-                    <div className="mt-3 text-xs text-white/70">
-                      Time: <span className="font-semibold">{review.complexity.time}</span> · Space: <span className="font-semibold">{review.complexity.space}</span>
+                    <div className="mt-3 text-xs text-[var(--career-muted)]">
+                      Time: <span className="font-semibold text-[var(--career-text)]">{review.complexity.time}</span> · Space: <span className="font-semibold text-[var(--career-text)]">{review.complexity.space}</span>
                     </div>
                   )}
                 </div>
               )}
 
               {runResult && (
-                <div className="border border-white/10 bg-white/[0.03] rounded-[12px] p-5">
-                  <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55 mb-2">Test run</div>
+                <div className="border border-[var(--career-border)] bg-[var(--career-surface)] rounded-[12px] p-5">
+                  <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] mb-2">Test run</div>
                   {runResult.error ? (
-                    <div className="text-sm text-red-200">{runResult.error}</div>
+                    <div className="text-sm text-red-600">{runResult.error}</div>
                   ) : (
-                    <div className="text-sm text-white/80 whitespace-pre-wrap">
+                    <div className="text-sm text-[var(--career-text)] whitespace-pre-wrap">
                       Passed {runResult.passed}/{runResult.total}
                       {'\n'}
                       {Array.isArray(runResult.results) ? runResult.results.map((r, i) => `${r.ok ? '✅' : '❌'} Test ${i + 1}${r.error ? ` — ${r.error}` : ''}`).join('\n') : ''}

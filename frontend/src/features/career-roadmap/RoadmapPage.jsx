@@ -96,7 +96,7 @@ export default function RoadmapPage() {
         <div>
           <div className="career-kicker">Career Roadmap</div>
           <h1 className="font-display font-extrabold text-3xl mt-1">AI-powered planning</h1>
-          <p className="text-sm text-white/65 mt-2 max-w-2xl">
+          <p className="text-sm text-[var(--career-muted)] mt-2 max-w-2xl">
             Personalized phases, progress tracking, and a SkillScan suite (ATS, gap analysis, job match, salary, LinkedIn, apps, certs, chat).
           </p>
         </div>
@@ -124,9 +124,9 @@ export default function RoadmapPage() {
         ) : null}
       </div>
 
-      <div className="career-card p-4 border border-[rgba(139,92,246,0.25)] bg-[rgba(139,92,246,0.05)]">
-        <div className="text-xs font-extrabold uppercase tracking-[0.24em] text-white/55">Planner mode</div>
-        <div className="mt-1 text-sm text-white/75">
+      <div className="career-card p-4 border border-[var(--career-border)] bg-[var(--career-surface)]">
+        <div className="text-xs font-extrabold uppercase tracking-[0.24em] text-[var(--career-muted)]">Planner mode</div>
+        <div className="mt-1 text-sm text-[var(--career-muted)]">
           Focus on one clear roadmap with interactive phase expansion, progress tracking, and daily execution clarity.
         </div>
       </div>
@@ -155,8 +155,8 @@ export default function RoadmapPage() {
               <div className="space-y-4">
                 <ProgressDashboard roadmap={roadmap} today={today} />
                 <div className="career-card p-4">
-                  <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45 mb-2">Interaction tips</div>
-                  <ul className="text-sm text-white/70 list-disc pl-5 space-y-1">
+                  <div className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--career-muted)] mb-2">Interaction tips</div>
+                  <ul className="text-sm text-[var(--career-muted)] list-disc pl-5 space-y-1">
                     <li>Open one phase at a time and finish 2 items today.</li>
                     <li>Mark tasks complete to update your momentum instantly.</li>
                     <li>Regenerate only when your role target changes.</li>

@@ -77,10 +77,23 @@ export async function callGroqChatJSON(systemPrompt, userPrompt, maxTokens = 900
 
 function safeParseJSON(raw) {
   if (!raw || typeof raw !== 'string') return null;
-  const cleaned = raw.replace(/```json\n?|\n?```/g, '').trim();
+  const trimmed = raw.trim();
+
+  // 1. Try to parse directly (covers pure JSON or API stripped mode)
+  let cleaned = trimmed.replace(/```json\n?|\n?```/g, '').trim();
   try {
     return JSON.parse(cleaned);
-  } catch {
+  } catch (e1) {
+    // 2. Fallback: try to extract substring between first { and last }
+    const start = trimmed.indexOf('{');
+    const end = trimmed.lastIndexOf('}');
+    if (start !== -1 && end !== -1 && end >= start) {
+      try {
+        return JSON.parse(trimmed.substring(start, end + 1));
+      } catch (e2) {
+        return null; // Both failed
+      }
+    }
     return null;
   }
 }

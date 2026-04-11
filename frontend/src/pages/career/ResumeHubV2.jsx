@@ -197,9 +197,9 @@ export default function ResumeHubV2() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Resume Hub</div>
-        <h1 className="font-display font-extrabold text-3xl mt-1">Readiness & JD intelligence</h1>
-        <p className="text-sm text-white/65 mt-2 max-w-3xl">
+        <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Resume Hub</div>
+        <h1 className="font-display font-extrabold text-3xl mt-1 text-[var(--career-text)]">Readiness & JD intelligence</h1>
+        <p className="text-sm text-[var(--career-muted)] mt-2 max-w-3xl">
           Upload a PDF or paste text, run personalized readiness analysis, compare real JDs, and simulate recruiter screening calls.
         </p>
       </div>
@@ -220,36 +220,36 @@ export default function ResumeHubV2() {
               <Briefcase size={18} />
               <span className="text-xs font-extrabold uppercase tracking-[0.28em]">Goal & resume</span>
             </div>
-            <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-[12px] px-3 py-2 text-sm text-white outline-none">
+            <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[12px] px-3 py-2 text-sm text-[var(--career-text)] outline-none">
               {GOALS.map((g) => <option key={g} value={g}>{g}</option>)}
               <option value="Custom">Custom…</option>
             </select>
             {goal === 'Custom' && (
-              <input value={customGoal} onChange={(e) => setCustomGoal(e.target.value)} className="w-full bg-black/30 border border-white/10 rounded-[12px] px-3 py-2 text-sm text-white outline-none" placeholder="Target role" />
+              <input value={customGoal} onChange={(e) => setCustomGoal(e.target.value)} className="w-full bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[12px] px-3 py-2 text-sm text-[var(--career-text)] outline-none" placeholder="Target role" />
             )}
             <div
-              className={`rounded-[12px] border-2 border-dashed p-5 text-center transition-colors ${dragActive ? 'border-cyan-300 bg-cyan-300/10' : 'border-white/20 bg-white/[0.03]'}`}
+              className={`rounded-[12px] border-2 border-dashed p-5 text-center transition-colors ${dragActive ? 'border-cyan-400 bg-cyan-50' : 'border-[var(--career-border)] bg-[var(--career-surface)]'}`}
               onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
               onDragLeave={() => setDragActive(false)}
               onDrop={(e) => { e.preventDefault(); onUploadFile(e.dataTransfer.files?.[0]); }}
             >
               <UploadCloud size={20} className="mx-auto text-[var(--career-accent2)]" />
-              <div className="text-sm text-white/75 mt-2">Drag & drop resume PDF here</div>
-              <div className="text-xs text-white/55 mt-1">or</div>
+              <div className="text-sm text-[var(--career-muted)] mt-2">Drag & drop resume PDF here</div>
+              <div className="text-xs text-[var(--career-muted)] mt-1">or</div>
               <label className="career-btn mt-2 cursor-pointer inline-flex">
                 Choose PDF
                 <input type="file" accept="application/pdf" className="hidden" onChange={(e) => onUploadFile(e.target.files?.[0])} />
               </label>
-              {loading === 'pdf' ? <div className="text-xs text-white/60 mt-2">Extracting with local parser…</div> : null}
+              {loading === 'pdf' ? <div className="text-xs text-[var(--career-muted)] mt-2">Extracting with local parser…</div> : null}
             </div>
             {resumeProfile ? (
-              <div className="rounded-[12px] border border-white/10 p-4 bg-white/[0.03] text-sm text-white/80">
+              <div className="rounded-[12px] border border-[var(--career-border)] p-4 bg-[var(--career-surface)] text-sm text-[var(--career-text)]">
                 <div className="font-semibold">{resumeProfile.fileName || 'resume.pdf'}</div>
-                <div className="text-xs text-white/55 mt-1">Pages: {resumeProfile.pageCount || 'unknown'} · Saved for reuse</div>
-                <div className="text-xs text-white/60 mt-2 whitespace-pre-wrap line-clamp-6">{resumeProfile.extractedPreview || ''}</div>
+                <div className="text-xs text-[var(--career-muted)] mt-1">Pages: {resumeProfile.pageCount || 'unknown'} · Saved for reuse</div>
+                <div className="text-xs text-[var(--career-muted)] mt-2 whitespace-pre-wrap line-clamp-6">{resumeProfile.extractedPreview || ''}</div>
               </div>
             ) : <EmptyState title="No uploaded resume yet" hint="Upload PDF or paste text below." icon="📄" />}
-            <textarea value={resumeText} onChange={(e) => setResumeText(e.target.value)} rows={12} className="w-full bg-black/30 border border-white/10 rounded-[12px] px-3 py-2 text-sm text-white outline-none font-mono" placeholder="Paste full resume text… (auto-filled from uploaded PDF)" />
+            <textarea value={resumeText} onChange={(e) => setResumeText(e.target.value)} rows={12} className="w-full bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[12px] px-3 py-2 text-sm text-[var(--career-text)] outline-none font-mono" placeholder="Paste full resume text… (auto-filled from uploaded PDF)" />
             <button type="button" className="career-btn" disabled={loading === 'analyze'} onClick={runAnalysis}>
               <Sparkles size={16} /> {loading === 'analyze' ? 'Analyzing…' : 'Run readiness assessment'}
             </button>
@@ -258,32 +258,32 @@ export default function ResumeHubV2() {
           <div className="career-card p-6 space-y-4">
             {analysis ? (
               <>
-                <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/55">Readiness verdict</div>
+                <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Readiness verdict</div>
                 <div className="flex flex-wrap items-end gap-4">
                   <div className="font-display font-extrabold text-4xl text-[var(--career-accent)]">{analysis.readinessScore}</div>
                   <div className="career-chip capitalize">{analysis.verdict?.replace('_', ' ')}</div>
                 </div>
-                <p className="text-sm text-white/75">{analysis.summary}</p>
+                <p className="text-sm text-[var(--career-muted)]">{analysis.summary}</p>
                 <div className="grid grid-cols-1 gap-4">
-                  <div className="rounded-[12px] border border-white/10 p-4">
-                    <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45 mb-2">Ready now</div>
-                    <ul className="text-sm space-y-1">{(analysis.readyNow || analysis.readyRoles || []).map((r, i) => <li key={i}>{r.title} — {r.matchPercent}%</li>)}</ul>
+                  <div className="rounded-[12px] border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+                    <div className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--career-muted)] mb-2">Ready now</div>
+                    <ul className="text-sm space-y-1 text-[var(--career-text)]">{(analysis.readyNow || analysis.readyRoles || []).map((r, i) => <li key={i}>{r.title} — {r.matchPercent}%</li>)}</ul>
                   </div>
-                  <div className="rounded-[12px] border border-white/10 p-4">
-                    <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45 mb-2">Reachable in 4 weeks</div>
-                    <ul className="text-sm space-y-1">{(analysis.reachableIn4Weeks || []).map((r, i) => <li key={i}>{r.title} — {r.matchPercent}%</li>)}</ul>
+                  <div className="rounded-[12px] border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+                    <div className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--career-muted)] mb-2">Reachable in 4 weeks</div>
+                    <ul className="text-sm space-y-1 text-[var(--career-text)]">{(analysis.reachableIn4Weeks || []).map((r, i) => <li key={i}>{r.title} — {r.matchPercent}%</li>)}</ul>
                   </div>
-                  <div className="rounded-[12px] border border-white/10 p-4">
-                    <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45 mb-2">Top 3 skills to learn first</div>
-                    <ul className="text-sm space-y-1">
+                  <div className="rounded-[12px] border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+                    <div className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--career-muted)] mb-2">Top 3 skills to learn first</div>
+                    <ul className="text-sm space-y-1 text-[var(--career-text)]">
                       {(analysis.prioritySkills || []).slice(0, 3).map((m, i) => (
-                        <li key={i}>{m.skill} · ~{m.hours} hrs · <a href={m.resource} target="_blank" rel="noreferrer" className="underline text-cyan-300">resource</a></li>
+                        <li key={i}>{m.skill} · ~{m.hours} hrs · <a href={m.resource} target="_blank" rel="noreferrer" className="underline text-cyan-600">resource</a></li>
                       ))}
                     </ul>
                   </div>
                 </div>
-                <div className="rounded-[12px] border border-white/10 p-4">
-                  <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45 mb-2">Weekly execution checklist</div>
+                <div className="rounded-[12px] border border-[var(--career-border)] bg-[var(--career-surface)] p-4 text-[var(--career-text)]">
+                  <div className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--career-muted)] mb-2">Weekly execution checklist</div>
                   <div className="space-y-2">
                     {(analysis.prioritySkills || []).slice(0, 4).map((m, i) => {
                       const k = `resume-${i}-${m.skill}`;
@@ -313,38 +313,38 @@ export default function ResumeHubV2() {
             <LineChart size={18} />
             <span className="text-xs font-extrabold uppercase tracking-[0.28em]">What recruiters want right now</span>
           </div>
-          <div className="text-xs text-white/55 flex items-center gap-2">
+          <div className="text-xs text-[var(--career-muted)] flex items-center gap-2">
             <CalendarClock size={14} />
             {intel?.fetchedAt ? `Last updated: ${new Date(intel.fetchedAt).toLocaleString()}${intel.cached ? ' (cached)' : ' (live)'}` : 'Not fetched yet'}
           </div>
           {intelLoading ? <LoadingSkeleton lines={5} className="rounded-[12px]" /> : null}
           {!intelLoading && !intel?.intel ? <EmptyState title="No role intelligence yet" hint="Choose a goal and wait for market scan." icon="📈" /> : null}
           {intel?.intel && (
-            <div className="space-y-3 text-sm text-white/80">
+            <div className="space-y-3 text-sm text-[var(--career-text)]">
               {intel.personalized ? (
-                <div className="rounded-[10px] border border-cyan-300/30 bg-cyan-500/10 p-3 text-xs text-cyan-100">
+                <div className="rounded-[10px] border border-cyan-200 bg-cyan-50 p-3 text-xs text-cyan-800">
                   Personalized using your latest resume/JD scan.
                 </div>
               ) : null}
               <ul className="list-disc pl-5 space-y-1">{(intel.intel.trends || []).map((t, i) => <li key={i}>{t}</li>)}</ul>
-              <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/45">What you should do now</div>
+              <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">What you should do now</div>
               <ul className="space-y-2">
                 {(intel.intel.whatToDoNow || []).map((x, i) => (
-                  <li key={i} className="border border-white/10 rounded-[12px] p-3 bg-white/[0.03]">
+                  <li key={i} className="border border-[var(--career-border)] rounded-[12px] p-3 bg-[var(--career-surface)]">
                     <div className="font-semibold">{x.action}</div>
-                    <div className="text-xs text-white/65 mt-1">{x.why}</div>
+                    <div className="text-xs text-[var(--career-muted)] mt-1">{x.why}</div>
                     <div className="text-[11px] mt-1 text-[var(--career-accent2)]">Impact: {x.impact}</div>
                   </li>
                 ))}
               </ul>
-              <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/45">Trending skills with 2-week plan</div>
+              <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Trending skills with 2-week plan</div>
               <ul className="space-y-2">
                 {(intel.intel.recruiterWantsNow || intel.intel.twoWeekRoadmap || []).map((r, i) => (
-                  <li key={i} className="border border-white/10 rounded-[12px] p-3 bg-white/[0.03]">
+                  <li key={i} className="border border-[var(--career-border)] rounded-[12px] p-3 bg-[var(--career-surface)]">
                     <div className="font-semibold text-[var(--career-accent)]">{r.skill}</div>
-                    <div className="text-xs text-white/70 mt-1">{r.reason || r.days}</div>
-                    {r.twoWeekPlan ? <div className="text-xs text-white/60 mt-1">{r.twoWeekPlan}</div> : null}
-                    <div className="mt-2 text-xs text-white/55">Tip: add one project bullet using this skill this week.</div>
+                    <div className="text-xs text-[var(--career-muted)] mt-1">{r.reason || r.days}</div>
+                    {r.twoWeekPlan ? <div className="text-xs text-[var(--career-muted)] mt-1">{r.twoWeekPlan}</div> : null}
+                    <div className="mt-2 text-xs text-[var(--career-muted)]">Tip: add one project bullet using this skill this week.</div>
                   </li>
                 ))}
               </ul>
@@ -359,7 +359,7 @@ export default function ResumeHubV2() {
             <ScanSearch size={18} />
             <span className="text-xs font-extrabold uppercase tracking-[0.28em]">JD scanner (personalized)</span>
           </div>
-          <textarea value={jdText} onChange={(e) => setJdText(e.target.value)} rows={8} className="w-full bg-black/30 border border-white/10 rounded-[12px] px-3 py-2 text-sm text-white outline-none" placeholder="Paste job description…" />
+          <textarea value={jdText} onChange={(e) => setJdText(e.target.value)} rows={8} className="w-full bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[12px] px-3 py-2 text-sm text-[var(--career-text)] outline-none" placeholder="Paste job description…" />
           <div className="flex gap-2 flex-wrap">
             <button type="button" className="career-btn" disabled={loading === 'jd'} onClick={runJd}>{loading === 'jd' ? 'Scanning…' : 'Compare to resume'}</button>
             <button type="button" className="career-btn" disabled={loading === 'kit'} onClick={runApplicationKit}>{loading === 'kit' ? 'Generating…' : 'Generate full application kit'}</button>
@@ -375,38 +375,38 @@ export default function ResumeHubV2() {
           {loading === 'jd' ? <LoadingSkeleton lines={6} className="rounded-[12px]" /> : null}
           {!loading && !jdScan ? <EmptyState title="No JD scan yet" hint="Paste JD and compare against your resume." icon="🧾" /> : null}
           {jdScan && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-white/80">
-              <div className="rounded-[12px] border border-[rgba(139,92,246,0.3)] p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-[var(--career-text)]">
+              <div className="rounded-[12px] border border-[rgba(139,92,246,0.3)] p-4 bg-[var(--career-surface)]">
                 <div className="font-extrabold text-2xl text-[var(--career-accent)]">{jdScan.matchScore}%</div>
-                <div className="mt-2 text-xs text-white/55">Match score</div>
-                <div className="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
+                <div className="mt-2 text-xs text-[var(--career-muted)]">Match score</div>
+                <div className="mt-3 h-2 rounded-full bg-[var(--career-border)] bg-opacity-50 overflow-hidden">
                   <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-yellow-400 to-red-400" style={{ width: `${Math.max(0, Math.min(100, jdScan.matchScore || 0))}%` }} />
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-2">
-                  <div className="rounded border border-emerald-300/40 bg-emerald-500/10 p-3"><div className="font-semibold text-emerald-200">Green (match)</div><ul className="list-disc pl-4 mt-1">{(jdScan.green || jdScan.matchedSkills || []).map((s, i) => <li key={i}>{s}</li>)}</ul></div>
-                  <div className="rounded border border-yellow-300/40 bg-yellow-500/10 p-3"><div className="font-semibold text-yellow-200">Yellow (partial)</div><ul className="list-disc pl-4 mt-1">{(jdScan.yellow || jdScan.partialSkills || []).map((s, i) => <li key={i}>{s}</li>)}</ul></div>
-                  <div className="rounded border border-red-300/40 bg-red-500/10 p-3"><div className="font-semibold text-red-200">Red (missing)</div><ul className="list-disc pl-4 mt-1">{(jdScan.red || jdScan.missingSkills || []).map((s, i) => <li key={i}>{s}</li>)}</ul></div>
+                  <div className="rounded border border-emerald-200 bg-emerald-50 p-3"><div className="font-semibold text-emerald-900">Green (match)</div><ul className="list-disc pl-4 mt-1">{(jdScan.green || jdScan.matchedSkills || []).map((s, i) => <li key={i}>{s}</li>)}</ul></div>
+                  <div className="rounded border border-yellow-200 bg-yellow-50 p-3"><div className="font-semibold text-yellow-900">Yellow (partial)</div><ul className="list-disc pl-4 mt-1">{(jdScan.yellow || jdScan.partialSkills || []).map((s, i) => <li key={i}>{s}</li>)}</ul></div>
+                  <div className="rounded border border-red-200 bg-red-50 p-3"><div className="font-semibold text-red-900">Red (missing)</div><ul className="list-disc pl-4 mt-1">{(jdScan.red || jdScan.missingSkills || []).map((s, i) => <li key={i}>{s}</li>)}</ul></div>
                 </div>
               </div>
-              <div className="rounded-[12px] border border-white/10 p-4 space-y-3">
-                <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45">STAR rewrites</div>
+              <div className="rounded-[12px] border border-[var(--career-border)] bg-[var(--career-surface)] p-4 space-y-3">
+                <div className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--career-muted)]">STAR rewrites</div>
                 {(jdScan.starRewrites || []).map((rw, i) => (
-                  <div key={i} className="border border-white/10 rounded-[12px] p-3 bg-white/[0.03]">
-                    <div className="text-xs text-red-200/90 line-through">Before: {rw.before}</div>
-                    <div className="text-xs text-emerald-200 mt-2">After: {rw.after}</div>
-                    {rw.rationale && <div className="text-xs text-white/55 mt-2">{rw.rationale}</div>}
+                  <div key={i} className="border border-[var(--career-border)] rounded-[12px] p-3 bg-[var(--career-surface)]">
+                    <div className="text-xs text-red-600 line-through">Before: {rw.before}</div>
+                    <div className="text-xs text-emerald-600 mt-2">After: {rw.after}</div>
+                    {rw.rationale && <div className="text-xs text-[var(--career-muted)] mt-2">{rw.rationale}</div>}
                   </div>
                 ))}
-                <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45">Free resources</div>
+                <div className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--career-muted)]">Free resources</div>
                 <ul className="text-xs space-y-2">
-                  {(jdScan.resources || []).map((r, i) => <li key={i}><span className="font-semibold">{r.skill}:</span> <a href={r.url} target="_blank" rel="noreferrer" className="underline text-cyan-300">{r.title || r.url}</a></li>)}
+                  {(jdScan.resources || []).map((r, i) => <li key={i}><span className="font-semibold">{r.skill}:</span> <a href={r.url} target="_blank" rel="noreferrer" className="underline text-cyan-600">{r.title || r.url}</a></li>)}
                 </ul>
               </div>
             </div>
           )}
           {appKit && (
-            <div className="rounded-[12px] border border-[rgba(139,92,246,0.3)] p-4 bg-[rgba(139,92,246,0.04)] space-y-3 text-sm text-white/85">
-              <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45">Application kit</div>
+            <div className="rounded-[12px] border border-[rgba(139,92,246,0.3)] p-4 bg-[rgba(139,92,246,0.04)] space-y-3 text-sm text-[var(--career-text)]">
+              <div className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--career-muted)]">Application kit</div>
               <p>{appKit.profileSummary || 'N/A'}</p>
               <div className="flex flex-wrap gap-2">{(appKit.interviewFocus || []).map((topic, i) => <span key={i} className="career-chip">{topic}</span>)}</div>
             </div>
@@ -431,9 +431,9 @@ export default function ResumeHubV2() {
             <>
               <div className="space-y-3">
                 {sim.questions.map((q, i) => (
-                  <div key={i} className="rounded-[12px] border border-white/10 p-4 bg-white/[0.03]">
+                  <div key={i} className="rounded-[12px] border border-[var(--career-border)] p-4 bg-[var(--career-surface)] text-[var(--career-text)]">
                     <div className="font-semibold">Q{i + 1}. {q}</div>
-                    <textarea value={sim.answers[i] || ''} onChange={(e) => { const next = [...sim.answers]; next[i] = e.target.value; setSim((prev) => ({ ...prev, answers: next })); }} rows={3} className="w-full mt-2 bg-black/30 border border-white/10 rounded-[12px] px-3 py-2 text-sm text-white outline-none" placeholder="Your answer…" />
+                    <textarea value={sim.answers[i] || ''} onChange={(e) => { const next = [...sim.answers]; next[i] = e.target.value; setSim((prev) => ({ ...prev, answers: next })); }} rows={3} className="w-full mt-2 bg-black/[0.02] border border-[var(--career-border)] rounded-[12px] px-3 py-2 text-sm text-[var(--career-text)] outline-none" placeholder="Your answer…" />
                   </div>
                 ))}
               </div>
@@ -442,25 +442,25 @@ export default function ResumeHubV2() {
                   {loading === 'sim-end' ? 'Evaluating…' : 'Complete sim (+75 XP)'}
                 </button>
               ) : (
-                <div className="rounded-[12px] border border-cyan-300/30 p-4 bg-cyan-500/10 text-sm text-white/85 space-y-3">
+                <div className="rounded-[12px] border border-cyan-200 p-4 bg-cyan-50 text-sm text-[var(--career-text)] space-y-3">
                   <div className="font-semibold">Recruiter feedback</div>
-                  <div><div className="text-xs uppercase tracking-widest text-white/50 mb-1">What impressed</div><ul className="list-disc pl-4">{(sim.feedback.whatImpressed || []).map((x, i) => <li key={i}>{x}</li>)}</ul></div>
-                  <div><div className="text-xs uppercase tracking-widest text-white/50 mb-1">What raised doubts</div><ul className="list-disc pl-4">{(sim.feedback.whatRaisedDoubts || []).map((x, i) => <li key={i}>{x}</li>)}</ul></div>
-                  <div><div className="text-xs uppercase tracking-widest text-white/50 mb-1">Resume fixes</div><ul className="list-disc pl-4">{(sim.feedback.resumeFixes || []).map((x, i) => <li key={i}>{x.issue} {'->'} {x.fix}</li>)}</ul></div>
+                  <div><div className="text-xs uppercase tracking-widest text-[var(--career-muted)] mb-1">What impressed</div><ul className="list-disc pl-4">{(sim.feedback.whatImpressed || []).map((x, i) => <li key={i}>{x}</li>)}</ul></div>
+                  <div><div className="text-xs uppercase tracking-widest text-[var(--career-muted)] mb-1">What raised doubts</div><ul className="list-disc pl-4">{(sim.feedback.whatRaisedDoubts || []).map((x, i) => <li key={i}>{x}</li>)}</ul></div>
+                  <div><div className="text-xs uppercase tracking-widest text-[var(--career-muted)] mb-1">Resume fixes</div><ul className="list-disc pl-4">{(sim.feedback.resumeFixes || []).map((x, i) => <li key={i}>{x.issue} {'->'} {x.fix}</li>)}</ul></div>
                   <div>
-                    <div className="text-xs uppercase tracking-widest text-white/50 mb-1">How to improve your answers</div>
+                    <div className="text-xs uppercase tracking-widest text-[var(--career-muted)] mb-1">How to improve your answers</div>
                     <div className="space-y-2">
                       {(sim.feedback.answerImprovements || []).map((x, i) => (
-                        <div key={i} className="rounded-[10px] border border-white/15 p-3 bg-white/[0.04]">
-                          <div className="text-xs text-white/60">Q: {x.question}</div>
-                          <div className="text-xs text-red-200 mt-1">Your answer: {x.yourAnswer}</div>
-                          <div className="text-xs text-emerald-200 mt-1">Improved: {x.improvedAnswer}</div>
-                          <div className="text-xs text-white/60 mt-1">{x.why}</div>
+                        <div key={i} className="rounded-[10px] border border-[var(--career-border)] p-3 bg-[var(--career-surface)]">
+                          <div className="text-xs text-[var(--career-text)] text-opacity-80">Q: {x.question}</div>
+                          <div className="text-xs text-red-600 mt-1">Your answer: {x.yourAnswer}</div>
+                          <div className="text-xs text-emerald-600 mt-1">Improved: {x.improvedAnswer}</div>
+                          <div className="text-xs text-[var(--career-muted)] mt-1">{x.why}</div>
                         </div>
                       ))}
                     </div>
                   </div>
-                  <div className="text-white/90 font-semibold">{sim.feedback.overallVerdict}</div>
+                  <div className="text-[var(--career-text)] font-semibold">{sim.feedback.overallVerdict}</div>
                 </div>
               )}
             </>

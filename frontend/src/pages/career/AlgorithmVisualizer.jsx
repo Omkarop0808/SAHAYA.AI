@@ -104,7 +104,7 @@ function ArrayViz({ array = [], pointers = [], window }) {
                   ? 'rgba(239,68,68,0.18)'
                   : hl === 'window'
                     ? 'rgba(34,197,94,0.14)'
-                    : 'rgba(255,255,255,0.04)';
+                    : 'rgba(15,23,42,0.04)';
           const border =
             hl === 'active'
               ? 'rgba(6,182,212,0.45)'
@@ -114,7 +114,7 @@ function ArrayViz({ array = [], pointers = [], window }) {
                   ? 'rgba(239,68,68,0.45)'
                   : hl === 'window'
                     ? 'rgba(34,197,94,0.45)'
-                    : 'rgba(255,255,255,0.10)';
+                    : 'rgba(15,23,42,0.10)';
 
           const pointerMarks = pointers.filter((p) => Number(p.index) === idx);
           const rawValue = String(cell.value ?? '');
@@ -139,7 +139,7 @@ function ArrayViz({ array = [], pointers = [], window }) {
                 ) : null}
               </div>
               <div
-                className="w-12 h-12 rounded-xl border flex items-center justify-center font-mono text-sm text-white/90"
+                className="w-12 h-12 rounded-xl border flex items-center justify-center font-mono text-sm text-[var(--career-text)]"
                 style={{
                   background: inWindow ? 'rgba(34,197,94,0.10)' : bg,
                   borderColor: inWindow ? 'rgba(34,197,94,0.35)' : border,
@@ -148,7 +148,7 @@ function ArrayViz({ array = [], pointers = [], window }) {
               >
                 {boolLike ? (valueLower.startsWith('t') ? 'T' : 'F') : rawValue}
               </div>
-              <div className="text-[10px] text-white/45 font-mono">{idx}</div>
+              <div className="text-[10px] text-[var(--career-muted)] font-mono">{idx}</div>
             </div>
           );
         })}
@@ -159,15 +159,15 @@ function ArrayViz({ array = [], pointers = [], window }) {
 
 function StackViz({ stack = [], title = 'Stack' }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-      <div className="font-semibold">{title}</div>
+    <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+      <div className="font-semibold text-[var(--career-text)]">{title}</div>
       <div className="mt-3 flex flex-col-reverse gap-2">
         {(stack || []).slice(0, 12).map((v, idx) => (
-          <div key={`${v}-${idx}`} className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-sm">
+          <div key={`${v}-${idx}`} className="rounded-lg border border-[var(--career-border)] bg-black/[0.02] px-3 py-2 font-mono text-sm text-[var(--career-text)]">
             {String(v)}
           </div>
         ))}
-        {!stack?.length ? <div className="text-sm text-white/60">Empty</div> : null}
+        {!stack?.length ? <div className="text-sm text-[var(--career-muted)]">Empty</div> : null}
       </div>
     </div>
   );
@@ -175,15 +175,15 @@ function StackViz({ stack = [], title = 'Stack' }) {
 
 function QueueViz({ queue = [], title = 'Queue' }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-      <div className="font-semibold">{title}</div>
+    <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+      <div className="font-semibold text-[var(--career-text)]">{title}</div>
       <div className="mt-3 flex flex-wrap gap-2">
         {(queue || []).slice(0, 16).map((v, idx) => (
-          <div key={`${v}-${idx}`} className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 font-mono text-sm">
+          <div key={`${v}-${idx}`} className="rounded-lg border border-[var(--career-border)] bg-black/[0.02] px-3 py-2 font-mono text-sm text-[var(--career-text)]">
             {String(v)}
           </div>
         ))}
-        {!queue?.length ? <div className="text-sm text-white/60">Empty</div> : null}
+        {!queue?.length ? <div className="text-sm text-[var(--career-muted)]">Empty</div> : null}
       </div>
     </div>
   );
@@ -256,8 +256,8 @@ function GraphViz({ graph }) {
   };
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 overflow-x-auto">
-      <div className="font-semibold">Graph state</div>
+    <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4 overflow-x-auto">
+      <div className="font-semibold text-[var(--career-text)]">Graph state</div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-3 min-w-[520px]">
         {edges.map((e, i) => {
           const a = positions.get(e.from);
@@ -289,12 +289,12 @@ function GraphViz({ graph }) {
                 cy={p.y}
                 r={isActive ? 18 : 15}
                 className={isActive ? 'career-viz-node-active' : 'career-viz-node'}
-                fill="rgba(10,10,15,0.9)"
+                fill="#ffffff"
                 stroke={nodeColor(n.state)}
                 strokeWidth={isActive ? 3 : 2}
                 style={{ transition: 'r 260ms ease, stroke 260ms ease, stroke-width 260ms ease, filter 260ms ease' }}
               />
-              <text x={p.x} y={p.y + 4} textAnchor="middle" fill="#E2E8F0" fontSize="11" fontWeight="700">
+              <text x={p.x} y={p.y + 4} textAnchor="middle" fill="#0f172a" fontSize="11" fontWeight="700">
                 {String(n.label || n.id)}
               </text>
             </g>
@@ -356,8 +356,8 @@ function TreeViz({ tree }) {
   };
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 overflow-x-auto">
-      <div className="font-semibold">Tree state</div>
+    <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4 overflow-x-auto">
+      <div className="font-semibold text-[var(--career-text)]">Tree state</div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-3 min-w-[520px]">
         {edges.map((e, i) => {
           const a = positions.get(e.from);
@@ -388,12 +388,12 @@ function TreeViz({ tree }) {
                 cy={p.y}
                 r={isActive ? 18 : 15}
                 className={isActive ? 'career-viz-node-active' : 'career-viz-node'}
-                fill="rgba(10,10,15,0.9)"
+                fill="#ffffff"
                 stroke={nodeColor(n.state)}
                 strokeWidth={isActive ? 3 : 2}
                 style={{ transition: 'r 260ms ease, stroke 260ms ease, stroke-width 260ms ease, filter 260ms ease' }}
               />
-              <text x={p.x} y={p.y + 4} textAnchor="middle" fill="#E2E8F0" fontSize="11" fontWeight="700">
+              <text x={p.x} y={p.y + 4} textAnchor="middle" fill="#0f172a" fontSize="11" fontWeight="700">
                 {String(n.label || n.id)}
               </text>
             </g>
@@ -545,8 +545,8 @@ export default function AlgorithmVisualizer() {
       <div className="flex items-end justify-between gap-6 flex-wrap">
         <div>
           <div className="career-kicker">Algorithm Visualizer</div>
-          <h1 className="font-display font-extrabold text-3xl mt-1">AI-powered interactive teaching</h1>
-          <p className="text-sm text-white/65 mt-2 max-w-2xl">
+          <h1 className="font-display font-extrabold text-3xl mt-1 text-[var(--career-text)]">AI-powered interactive teaching</h1>
+          <p className="text-sm text-[var(--career-muted)] mt-2 max-w-2xl">
             Paste a LeetCode URL or type a problem name. You’ll get pattern detection + an accurate step walkthrough + final solution.
           </p>
         </div>
@@ -579,7 +579,7 @@ export default function AlgorithmVisualizer() {
       </div>
       {recentQueries.length ? (
         <div className="career-card p-4">
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Recent inputs</div>
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Recent inputs</div>
           <div className="mt-3 flex flex-wrap gap-2">
             {recentQueries.map((r) => (
               <button
@@ -597,9 +597,9 @@ export default function AlgorithmVisualizer() {
       ) : null}
 
       {err ? (
-        <div className="career-card border border-red-400/35 bg-red-500/10">
-          <div className="font-semibold text-red-200">Analyzer error</div>
-          <p className="text-sm text-red-100/85 mt-2">{err}</p>
+        <div className="career-card border border-red-400 bg-red-50 text-[var(--career-text)]">
+          <div className="font-semibold text-red-700">Analyzer error</div>
+          <p className="text-sm text-red-600 mt-2">{err}</p>
           <button type="button" onClick={analyze} className="career-btn mt-3">Retry</button>
         </div>
       ) : null}
@@ -609,16 +609,16 @@ export default function AlgorithmVisualizer() {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="min-w-0">
               <div className="career-kicker">Pattern identified</div>
-              <div className="font-display font-extrabold text-2xl mt-1">{data.pattern.name}</div>
-              <div className="text-sm text-white/70 mt-2">{data.pattern.ruleOfThumb}</div>
+              <div className="font-display font-extrabold text-2xl mt-1 text-[var(--career-text)]">{data.pattern.name}</div>
+              <div className="text-sm text-[var(--career-muted)] mt-2">{data.pattern.ruleOfThumb}</div>
             </div>
             <div className="career-chip">Steps: {steps.length || 0}</div>
           </div>
 
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="font-semibold">Approach blueprint</div>
-              <ul className="mt-2 text-sm text-white/70 space-y-2">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+              <div className="font-semibold text-[var(--career-text)]">Approach blueprint</div>
+              <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-2">
                 {(data.pattern.approach || []).slice(0, 8).map((x, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <span className="career-chip !px-2 !py-0.5 !text-[10px]">{i + 1}</span>
@@ -627,18 +627,25 @@ export default function AlgorithmVisualizer() {
                 ))}
               </ul>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="font-semibold">How to recognize it next time</div>
-              <ul className="mt-2 text-sm text-white/70 space-y-1">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+              <div className="font-semibold text-[var(--career-text)]">How to recognize it next time</div>
+              <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-1">
                 {(data.pattern.recognitionHints || []).slice(0, 6).map((x, i) => <li key={i}>- {x}</li>)}
               </ul>
             </div>
           </div>
-          {data.pattern.whenToUse?.length ? (
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 mt-4">
-              <div className="font-semibold">When this approach is correct</div>
-              <ul className="mt-2 text-sm text-white/70 space-y-1">
+          {Array.isArray(data.pattern.whenToUse) && data.pattern.whenToUse.length ? (
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4 mt-4">
+              <div className="font-semibold text-[var(--career-text)]">When this approach is correct</div>
+              <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-1">
                 {data.pattern.whenToUse.slice(0, 6).map((x, i) => <li key={i}>- {x}</li>)}
+              </ul>
+            </div>
+          ) : typeof data.pattern.whenToUse === 'string' && data.pattern.whenToUse.trim() ? (
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4 mt-4">
+              <div className="font-semibold text-[var(--career-text)]">When this approach is correct</div>
+              <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-1">
+                <li>- {data.pattern.whenToUse}</li>
               </ul>
             </div>
           ) : null}
@@ -647,17 +654,17 @@ export default function AlgorithmVisualizer() {
 
       {data?.problem ? (
         <div className="career-card">
-          <div className="font-semibold">{data.problem.title}</div>
-          <div className="text-sm text-white/70 mt-2 whitespace-pre-wrap">{data.problem.description}</div>
+          <div className="font-semibold text-[var(--career-text)]">{data.problem.title}</div>
+          <div className="text-sm text-[var(--career-muted)] mt-2 whitespace-pre-wrap">{data.problem.description}</div>
           {data.problem.examples?.length ? (
             <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
               {data.problem.examples.slice(0, 2).map((ex, i) => (
-                <div key={i} className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                  <div className="font-semibold">Example {i + 1}</div>
-                  <div className="mt-2 text-sm text-white/70 whitespace-pre-wrap">
-                    <div><span className="text-white/85 font-semibold">Input:</span> {ex.input}</div>
-                    <div><span className="text-white/85 font-semibold">Output:</span> {ex.output}</div>
-                    {ex.explanation ? <div className="mt-2"><span className="text-white/85 font-semibold">Why:</span> {ex.explanation}</div> : null}
+                <div key={i} className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+                  <div className="font-semibold text-[var(--career-text)]">Example {i + 1}</div>
+                  <div className="mt-2 text-sm text-[var(--career-muted)] whitespace-pre-wrap">
+                    <div><span className="text-[var(--career-text)] font-semibold">Input:</span> {ex.input}</div>
+                    <div><span className="text-[var(--career-text)] font-semibold">Output:</span> {ex.output}</div>
+                    {ex.explanation ? <div className="mt-2"><span className="text-[var(--career-text)] font-semibold">Why:</span> {ex.explanation}</div> : null}
                   </div>
                 </div>
               ))}
@@ -669,28 +676,28 @@ export default function AlgorithmVisualizer() {
       {(firstExample || data?.final?.complexity) ? (
         <div className="career-card">
           <div className="career-kicker">Start to end journey</div>
-          <div className="font-display font-extrabold text-xl mt-1">Input → Process → Output map</div>
+          <div className="font-display font-extrabold text-xl mt-1 text-[var(--career-text)]">Input → Process → Output map</div>
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="font-semibold">Start (Input)</div>
-              <div className="text-sm text-white/70 mt-2 whitespace-pre-wrap">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+              <div className="font-semibold text-[var(--career-text)]">Start (Input)</div>
+              <div className="text-sm text-[var(--career-muted)] mt-2 whitespace-pre-wrap">
                 {firstExample?.input || 'Input will appear here from example #1.'}
               </div>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="font-semibold">Core process</div>
-              <div className="text-sm text-white/70 mt-2">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+              <div className="font-semibold text-[var(--career-text)]">Core process</div>
+              <div className="text-sm text-[var(--career-muted)] mt-2">
                 {data?.pattern?.ruleOfThumb || 'Pattern explanation unavailable.'}
               </div>
               {data?.final?.complexity ? (
-                <div className="mt-3 text-xs text-white/60">
+                <div className="mt-3 text-xs text-[var(--career-muted)]">
                   Time: {data.final.complexity.time || 'N/A'} · Space: {data.final.complexity.space || 'N/A'}
                 </div>
               ) : null}
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="font-semibold">End (Expected output)</div>
-              <div className="text-sm text-white/70 mt-2 whitespace-pre-wrap">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+              <div className="font-semibold text-[var(--career-text)]">End (Expected output)</div>
+              <div className="text-sm text-[var(--career-muted)] mt-2 whitespace-pre-wrap">
                 {firstExample?.output || 'Output will appear here from example #1.'}
               </div>
             </div>
@@ -701,7 +708,7 @@ export default function AlgorithmVisualizer() {
       {steps.length ? (
         <div className="career-card">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="text-sm text-white/70">Step {idx + 1}/{steps.length}</div>
+            <div className="text-sm text-[var(--career-muted)]">Step {idx + 1}/{steps.length}</div>
             <div className="flex items-center gap-2 flex-wrap">
               <button type="button" onClick={() => setIdx((i) => Math.max(0, i - 1))} className="career-btn" disabled={idx <= 0}>
                 <StepBack size={16} /> Back
@@ -726,7 +733,7 @@ export default function AlgorithmVisualizer() {
                 {muted ? <VolumeX size={16} /> : <Volume2 size={16} />} {muted ? 'Muted' : 'Voice'}
               </button>
               <div className="flex items-center gap-2 ml-2">
-                <span className="text-xs text-white/60 font-extrabold uppercase tracking-widest">Speed</span>
+                <span className="text-xs text-[var(--career-muted)] font-extrabold uppercase tracking-widest">Speed</span>
                 <select className="career-input !w-[110px]" value={speedMs} onChange={(e) => setSpeedMs(Number(e.target.value))}>
                   {SPEEDS.map((s) => (
                     <option key={s.label} value={s.ms}>{s.label}</option>
@@ -746,8 +753,8 @@ export default function AlgorithmVisualizer() {
               aria-label="Step scrubber"
             />
           </div>
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-            <div className="font-semibold">Execution checkpoints</div>
+          <div className="mt-4 rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+            <div className="font-semibold text-[var(--career-text)]">Execution checkpoints</div>
             <div className="mt-3 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {checkpoints.map((cp) => (
                 <button
@@ -757,25 +764,25 @@ export default function AlgorithmVisualizer() {
                     setIdx(Math.max(0, cp.stepNo - 1));
                     setPlaying(false);
                   }}
-                  className="text-left rounded-xl border border-white/10 bg-black/20 hover:bg-black/35 transition-colors p-3"
+                  className="text-left rounded-xl border border-[var(--career-border)] bg-black/5 hover:bg-black/10 transition-colors p-3"
                 >
                   <div className="career-kicker">Step {cp.stepNo}</div>
-                  <div className="font-semibold mt-1">{cp.label || `Step ${cp.stepNo}`}</div>
-                  <div className="text-xs text-white/65 mt-1 line-clamp-2">{cp.stepText || 'No detail available.'}</div>
+                  <div className="font-semibold mt-1 text-[var(--career-text)]">{cp.label || `Step ${cp.stepNo}`}</div>
+                  <div className="text-xs text-[var(--career-muted)] mt-1 line-clamp-2">{cp.stepText || 'No detail available.'}</div>
                 </button>
               ))}
             </div>
           </div>
 
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="font-semibold">{step?.label || 'Step'}</div>
-              <div className="text-sm text-white/70 mt-1">{step?.stepText || ''}</div>
+            <div className="lg:col-span-2 rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+              <div className="font-semibold text-[var(--career-text)]">{step?.label || 'Step'}</div>
+              <div className="text-sm text-[var(--career-muted)] mt-1">{step?.stepText || ''}</div>
               <div className="mt-4 space-y-4">
                 {step?.state?.array?.length ? (
                   <ArrayViz array={step.state.array} pointers={step.state.pointers || []} window={step.state.window} />
                 ) : (
-                  <div className="text-sm text-white/60">No array visualization for this step.</div>
+                  <div className="text-sm text-[var(--career-muted)]">No array visualization for this step.</div>
                 )}
                 {graphData?.nodes?.length ? <GraphViz graph={graphData} /> : null}
                 {step?.state?.tree?.nodes?.length ? <TreeViz tree={step.state.tree} /> : null}
@@ -788,7 +795,7 @@ export default function AlgorithmVisualizer() {
               {(step?.voiceText || voiceCache[idx]) ? (
                 <div className="rounded-xl border border-[rgba(6,182,212,0.25)] bg-[rgba(6,182,212,0.06)] p-4">
                   <div className="career-kicker">Teacher voice (text)</div>
-                  <div className="text-sm text-white/80 mt-2 whitespace-pre-wrap">{step.voiceText || voiceCache[idx]}</div>
+                  <div className="text-sm text-[var(--career-text)] mt-2 whitespace-pre-wrap">{step.voiceText || voiceCache[idx]}</div>
                 </div>
               ) : null}
             </div>
@@ -798,8 +805,8 @@ export default function AlgorithmVisualizer() {
 
       {data?.final ? (
         <div className="career-card">
-          <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
-            <div className="font-semibold text-lg flex items-center gap-2">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--career-border)] mb-4">
+            <div className="font-semibold text-lg flex items-center gap-2 text-[var(--career-text)]">
               <Sparkles size={18} className="text-cyan-400" /> Optimal solution
             </div>
             <div className="flex space-x-2 items-center">
@@ -807,7 +814,7 @@ export default function AlgorithmVisualizer() {
                  <button
                    type="button"
                    onClick={() => setIsTracing(false)}
-                   className="career-btn !bg-neutral-500/20 hover:!bg-neutral-500/30 !text-neutral-300"
+                   className="career-btn !bg-black/10 hover:!bg-black/15 !text-[var(--career-text)]"
                  >
                    Exit Tracer
                  </button>
@@ -815,7 +822,7 @@ export default function AlgorithmVisualizer() {
                 <button
                   type="button"
                   onClick={() => setIsTracing(true)}
-                  className="career-btn !bg-cyan-500/20 hover:!bg-cyan-500/30 !text-cyan-300 !border-cyan-500/30"
+                  className="career-btn !bg-cyan-500/20 hover:!bg-cyan-500/30 !text-cyan-600 !border-cyan-500/30"
                 >
                   <Play size={16} /> Trace Code Execution
                 </button>
@@ -827,8 +834,8 @@ export default function AlgorithmVisualizer() {
              <div className="mt-3 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                         <span className="font-semibold">Code Input</span>
-                         <span className="text-[10px] tracking-wider font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded uppercase">Python Only</span>
+                         <span className="font-semibold text-[var(--career-text)]">Code Input</span>
+                         <span className="text-[10px] tracking-wider font-bold bg-amber-500/20 text-orange-600 px-2 py-0.5 rounded uppercase">Python Only</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
@@ -838,7 +845,7 @@ export default function AlgorithmVisualizer() {
                             const el = document.getElementById('tracer-code-input');
                             if (el) el.value = sample;
                           }}
-                          className="text-xs text-white/50 hover:text-white transition-colors px-2 py-1"
+                          className="text-xs text-[var(--career-muted)] hover:text-[var(--career-text)] transition-colors px-2 py-1"
                         >
                           Load Sample
                         </button>
@@ -868,26 +875,26 @@ export default function AlgorithmVisualizer() {
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-4 h-[600px]">
-                    <div className="w-full lg:w-5/12 h-full rounded-xl border border-white/10 bg-black/40 overflow-hidden relative">
+                    <div className="w-full lg:w-5/12 h-full rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] overflow-hidden relative">
                          <textarea
                             id="tracer-code-input"
                             defaultValue={data.final.code || ''}
                             spellCheck="false"
-                            className="w-full h-full p-4 bg-transparent text-sm text-white/80 font-mono resize-none focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+                            className="w-full h-full p-4 bg-transparent text-sm text-[var(--career-text)] font-mono resize-none focus:outline-none focus:ring-1 focus:ring-orange-500/50"
                             placeholder="Write Python code here to trace..."
                          />
                     </div>
                     <div className="w-full lg:w-7/12 h-full flex flex-col">
                        {executionTrace?.generating ? (
-                           <div className="flex-1 flex items-center justify-center border border-white/10 rounded-xl bg-black/40">
-                              <Activity className="animate-spin text-orange-400" size={32} />
+                           <div className="flex-1 flex items-center justify-center border border-[var(--career-border)] rounded-xl bg-[var(--career-surface)]">
+                              <Activity className="animate-spin text-orange-500" size={32} />
                            </div>
                        ) : executionTrace ? (
                            <div className="flex-1 overflow-hidden">
                                <ExecutionAnimator trace={executionTrace} code={document.getElementById('tracer-code-input')?.value || data.final.code} />
                            </div>
                        ) : (
-                           <div className="flex-1 flex items-center justify-center border border-white/10 rounded-xl bg-black/40 text-white/40 text-sm">
+                           <div className="flex-1 flex items-center justify-center border border-[var(--career-border)] rounded-xl bg-[var(--career-surface)] text-[var(--career-muted)] text-sm">
                                Click Visualize to trace execution
                            </div>
                        )}
@@ -895,22 +902,22 @@ export default function AlgorithmVisualizer() {
                 </div>
              </div>
           ) : (
-            <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 overflow-x-auto relative group">
-              <pre className="text-sm text-white/80 whitespace-pre">{data.final.code}</pre>
+            <div className="mt-3 rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4 overflow-x-auto relative group">
+              <pre className="text-sm text-[var(--career-text)] whitespace-pre">{data.final.code}</pre>
             </div>
           )}
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="font-semibold">Complexity</div>
-              <div className="text-sm text-white/70 mt-2">
-                <div><span className="font-semibold text-white/85">Time:</span> {data.final.complexity?.time}</div>
-                <div><span className="font-semibold text-white/85">Space:</span> {data.final.complexity?.space}</div>
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+              <div className="font-semibold text-[var(--career-text)]">Complexity</div>
+              <div className="text-sm text-[var(--career-muted)] mt-2">
+                <div><span className="font-semibold text-[var(--career-text)]">Time:</span> {data.final.complexity?.time}</div>
+                <div><span className="font-semibold text-[var(--career-text)]">Space:</span> {data.final.complexity?.space}</div>
                 {data.final.complexity?.explain ? <div className="mt-2">{data.final.complexity.explain}</div> : null}
               </div>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-              <div className="font-semibold">Similar problems to practice now</div>
-              <ul className="mt-2 text-sm text-white/70 space-y-1">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
+              <div className="font-semibold text-[var(--career-text)]">Similar problems to practice now</div>
+              <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-1">
                 {(data.final.similar || []).slice(0, 6).map((p, i) => <li key={i}>- {p.title} ({p.pattern})</li>)}
               </ul>
             </div>

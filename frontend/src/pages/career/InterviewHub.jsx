@@ -109,7 +109,7 @@ function RadarMini({ radar }) {
         <polygon fill="rgba(139,92,246,0.15)" stroke="currentColor" strokeWidth="1" points="50,2 95,38 78,88 22,88 5,38" />
         <path d={d} fill="rgba(6,182,212,0.25)" stroke="#06B6D4" strokeWidth="1.5" />
       </svg>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] font-mono text-white/55 w-full max-w-[200px]">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] font-mono text-[var(--career-muted)] w-full max-w-[200px]">
         {keys.map(({ k, label }) => (
           <span key={k} className="flex justify-between">
             <span>{label}</span>
@@ -248,9 +248,9 @@ export default function InterviewHub() {
     return (
       <div className="space-y-6">
         <div>
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Interview Lab</div>
-          <h1 className="font-display font-extrabold text-3xl mt-1">Configure your mock interview</h1>
-          <p className="text-sm text-white/65 mt-2 max-w-3xl">
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Interview Lab</div>
+          <h1 className="font-display font-extrabold text-3xl mt-1 text-[var(--career-text)]">Configure your mock interview</h1>
+          <p className="text-sm text-[var(--career-muted)] mt-2 max-w-3xl">
             Groq drives live Q&amp;A with per-answer scoring; Gemini builds your final radar, grade, and improvement plan.
             {focusHint ? (
               <span className="block mt-2 text-[var(--career-accent2)] font-semibold">
@@ -265,7 +265,7 @@ export default function InterviewHub() {
         <div className="career-card p-6 space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-[2fr,3fr] gap-6">
             <div className="space-y-3">
-              <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45">Choose interview type</div>
+              <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Choose interview type</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {INTERVIEW_TYPES.map((t) => (
                   <button
@@ -275,21 +275,21 @@ export default function InterviewHub() {
                     className={`text-left rounded-[12px] border px-4 py-4 transition-all ${
                       typeId === t.id
                         ? 'border-[rgba(139,92,246,0.65)] bg-[rgba(139,92,246,0.16)]'
-                        : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]'
+                        : 'border-[var(--career-border)] bg-[var(--career-surface)] hover:bg-black/[0.02]'
                     }`}
                   >
-                    <div className="font-extrabold text-white flex items-center gap-2">
+                    <div className="font-extrabold text-[var(--career-text)] flex items-center gap-2">
                       <t.icon size={16} />
                       {t.label}
                     </div>
-                    <div className="text-xs text-white/55 mt-1">{t.sub}</div>
+                    <div className="text-xs text-[var(--career-muted)] mt-1">{t.sub}</div>
                   </button>
                 ))}
               </div>
             </div>
 
             <div className="space-y-3">
-              <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45">Select your domain</div>
+              <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Select your domain</div>
               <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                 {DOMAIN_TAGS.map((tag) => {
                   const active = domains.has(tag);
@@ -307,8 +307,8 @@ export default function InterviewHub() {
                       }}
                       className={`text-[10px] font-mono rounded-full px-2 py-1 border transition ${
                         active
-                          ? 'border-[rgba(6,182,212,0.7)] bg-[rgba(6,182,212,0.12)] text-white'
-                          : 'border-white/10 text-white/60 hover:border-white/30'
+                          ? 'border-[rgba(6,182,212,0.7)] bg-[rgba(6,182,212,0.12)] text-[var(--career-text)]'
+                          : 'border-[var(--career-border)] text-[var(--career-muted)] hover:border-[rgba(6,182,212,0.4)] hover:bg-black/[0.02]'
                       }`}
                     >
                       {tag}
@@ -322,7 +322,7 @@ export default function InterviewHub() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="career-card p-6 space-y-3">
-            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 flex items-center gap-2">
+            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] flex items-center gap-2">
               <Gauge size={16} /> Difficulty
             </div>
             <div className="flex flex-wrap gap-2">
@@ -340,7 +340,7 @@ export default function InterviewHub() {
           </div>
 
           <div className="career-card p-6 space-y-3">
-            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 flex items-center gap-2">
+            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] flex items-center gap-2">
               <Clock size={16} /> Duration
             </div>
             <div className="flex flex-col gap-2">
@@ -350,7 +350,7 @@ export default function InterviewHub() {
                   type="button"
                   onClick={() => setDurationId(d.id)}
                   className={`text-left rounded-[12px] border px-4 py-3 text-sm ${
-                    durationId === d.id ? 'border-[rgba(6,182,212,0.45)] bg-[rgba(6,182,212,0.08)]' : 'border-white/10 bg-white/[0.03]'
+                    durationId === d.id ? 'border-[rgba(6,182,212,0.45)] bg-[rgba(6,182,212,0.08)]' : 'border-[var(--career-border)] bg-[var(--career-surface)]'
                   }`}
                 >
                   {d.label}
@@ -360,7 +360,7 @@ export default function InterviewHub() {
           </div>
 
           <div className="career-card p-6 space-y-3">
-            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 flex items-center gap-2">
+            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] flex items-center gap-2">
               <Building2 size={16} /> Company style
             </div>
             <div className="flex flex-wrap gap-2">
@@ -371,8 +371,8 @@ export default function InterviewHub() {
                   onClick={() => setCompanyStyle(c.id)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${
                     companyStyle === c.id
-                      ? 'border-[rgba(139,92,246,0.5)] bg-[rgba(139,92,246,0.15)] text-white'
-                      : 'border-white/10 text-white/65'
+                      ? 'border-[rgba(139,92,246,0.5)] bg-[rgba(139,92,246,0.15)] text-[var(--career-text)]'
+                      : 'border-[var(--career-border)] text-[var(--career-muted)]'
                   }`}
                 >
                   {c.label}
@@ -397,8 +397,8 @@ export default function InterviewHub() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Live session · {title}</div>
-            <h1 className="font-display font-extrabold text-2xl mt-1">Question {Math.min(turnIndex, targetQuestions)} / {targetQuestions}</h1>
+            <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Live session · {title}</div>
+            <h1 className="font-display font-extrabold text-2xl mt-1 text-[var(--career-text)]">Question {Math.min(turnIndex, targetQuestions)} / {targetQuestions}</h1>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <div className="career-chip flex items-center gap-2">
@@ -414,11 +414,11 @@ export default function InterviewHub() {
         {err && <ErrorState message={err} onRetry={() => setErr(null)} />}
 
         <div className="career-card p-4 space-y-2">
-          <div className="flex justify-between text-[10px] font-mono uppercase tracking-widest text-white/45">
+          <div className="flex justify-between text-[10px] font-mono uppercase tracking-widest text-[var(--career-muted)]">
             <span>Session progress</span>
             <span>{progress}%</span>
           </div>
-          <div className="h-2 rounded-full bg-white/10 overflow-hidden border border-white/10">
+          <div className="h-2 rounded-full bg-[var(--career-border)] bg-opacity-50 overflow-hidden border border-[var(--career-border)]">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
@@ -438,7 +438,7 @@ export default function InterviewHub() {
               ['Communication', lastMetrics.communication],
             ].map(([label, val]) => (
               <div key={label} className="career-card p-4 !py-3">
-                <div className="text-[10px] font-extrabold uppercase tracking-widest text-white/45">{label}</div>
+                <div className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--career-muted)]">{label}</div>
                 <div className="font-display font-extrabold text-2xl text-[var(--career-accent2)] mt-1">{val}%</div>
               </div>
             ))}
@@ -446,15 +446,15 @@ export default function InterviewHub() {
         )}
 
         {lastMetrics?.tip && (
-          <div className="rounded-[12px] border border-[rgba(6,182,212,0.25)] bg-[rgba(6,182,212,0.06)] px-4 py-3 text-sm text-white/80">
+          <div className="rounded-[12px] border border-[rgba(6,182,212,0.25)] bg-[rgba(6,182,212,0.06)] px-4 py-3 text-sm text-[var(--career-text)]">
             <span className="font-extrabold text-[var(--career-accent2)]">Coach tip: </span>
             {lastMetrics.tip}
           </div>
         )}
 
         <div className="career-card p-0 overflow-hidden">
-          <div className="px-6 py-3 border-b border-white/10 flex items-center justify-between">
-            <span className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/55">Transcript</span>
+          <div className="px-6 py-3 border-b border-[var(--career-border)] flex items-center justify-between">
+            <span className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Transcript</span>
             {sessionComplete && <span className="career-chip text-[10px]">Complete — generate report</span>}
           </div>
           <div className="p-6 space-y-4 max-h-[50vh] overflow-auto">
@@ -467,21 +467,21 @@ export default function InterviewHub() {
                     : 'border-[rgba(139,92,246,0.25)] bg-[rgba(139,92,246,0.06)]'
                 }`}
               >
-                <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55 mb-2">
+                <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] mb-2">
                   {m.role === 'user' ? 'You' : 'Interviewer'}
                 </div>
-                <div className="text-sm text-white/85 whitespace-pre-wrap">{m.content}</div>
+                <div className="text-sm text-[var(--career-text)] whitespace-pre-wrap">{m.content}</div>
               </div>
             ))}
           </div>
-          <div className="px-6 py-4 border-t border-white/10 bg-[#111118]/90">
+          <div className="px-6 py-4 border-t border-[var(--career-border)] bg-[var(--career-surface)]">
             <div className="flex items-center gap-3">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={sessionComplete || loading}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && send()}
-                className="flex-1 bg-black/30 border border-white/10 rounded-[12px] px-4 py-3 text-sm text-white outline-none disabled:opacity-50"
+                className="flex-1 bg-black/[0.02] border border-[var(--career-border)] rounded-[12px] px-4 py-3 text-sm text-[var(--career-text)] outline-none disabled:opacity-50"
                 placeholder={sessionComplete ? 'Session finished — use End & Report' : 'Type your answer…'}
               />
               <button type="button" className="career-btn" onClick={send} disabled={sessionComplete || loading}>
@@ -503,8 +503,8 @@ export default function InterviewHub() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Interview report</div>
-          <h1 className="font-display font-extrabold text-3xl mt-1">Performance summary</h1>
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Interview report</div>
+          <h1 className="font-display font-extrabold text-3xl mt-1 text-[var(--career-text)]">Performance summary</h1>
         </div>
         <div className="flex gap-2">
           <button type="button" className="career-btn" onClick={resetAll}>
@@ -514,22 +514,22 @@ export default function InterviewHub() {
       </div>
 
       {!assessment ? (
-        <div className="career-card p-8 text-center text-white/60 text-sm">
-          No report yet. Run a session and tap <strong className="text-white">End &amp; Report</strong>.
+        <div className="career-card p-8 text-center text-[var(--career-muted)] text-sm">
+          No report yet. Run a session and tap <strong className="text-[var(--career-text)]">End &amp; Report</strong>.
         </div>
       ) : null}
 
       {assessment && (
         <>
           <div className="career-card p-6 flex flex-wrap gap-8 items-center">
-            <div className="relative w-36 h-36 rounded-full border-4 border-[rgba(139,92,246,0.35)] flex items-center justify-center bg-[#111118]">
+            <div className="relative w-36 h-36 rounded-full border-4 border-[rgba(139,92,246,0.35)] flex items-center justify-center bg-[var(--career-surface)]">
               <div className="text-center">
                 <div className="font-display font-extrabold text-3xl text-[var(--career-accent2)]">{assessment.overallScore}</div>
-                <div className="text-[10px] font-mono uppercase text-white/45">/ 100</div>
+                <div className="text-[10px] font-mono uppercase text-[var(--career-muted)]">/ 100</div>
               </div>
             </div>
             <div className="flex-1 min-w-[200px]">
-              <div className="font-display font-extrabold text-2xl">{assessment.verdict}</div>
+              <div className="font-display font-extrabold text-2xl text-[var(--career-text)]">{assessment.verdict}</div>
               <div className="flex flex-wrap gap-2 mt-2">
                 {assessment.grade && <span className="career-chip">Grade {assessment.grade}</span>}
                 {assessment.placementReadiness && (
@@ -537,7 +537,7 @@ export default function InterviewHub() {
                 )}
               </div>
               {assessment.report && (
-                <p className="text-sm text-white/70 mt-3 whitespace-pre-wrap">{assessment.report}</p>
+                <p className="text-sm text-[var(--career-muted)] mt-3 whitespace-pre-wrap">{assessment.report}</p>
               )}
             </div>
             <RadarMini radar={radar} />
@@ -547,10 +547,10 @@ export default function InterviewHub() {
             {(assessment.categoryScores || []).map((c) => (
               <div key={c.name} className="career-card p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-semibold">{c.name}</div>
+                  <div className="font-semibold text-[var(--career-text)]">{c.name}</div>
                   <div className="career-chip">{c.score}%</div>
                 </div>
-                <div className="mt-3 h-2 rounded-full bg-white/10 overflow-hidden">
+                <div className="mt-3 h-2 rounded-full bg-[var(--career-border)] overflow-hidden">
                   <div
                     className="h-full rounded-full"
                     style={{
@@ -559,7 +559,7 @@ export default function InterviewHub() {
                     }}
                   />
                 </div>
-                {c.notes && <div className="text-sm text-white/70 mt-3">{c.notes}</div>}
+                {c.notes && <div className="text-sm text-[var(--career-muted)] mt-3">{c.notes}</div>}
               </div>
             ))}
           </div>
@@ -569,13 +569,13 @@ export default function InterviewHub() {
               <div className="career-kicker mb-3">Question review</div>
               <div className="space-y-3">
                 {assessment.questionReviews.map((q) => (
-                  <div key={q.index} className="border border-white/10 rounded-[12px] p-4 bg-white/[0.03]">
+                  <div key={q.index} className="border border-[var(--career-border)] rounded-[12px] p-4 bg-[var(--career-surface)]">
                     <div className="flex justify-between gap-4">
                       <span className="text-xs font-extrabold text-[var(--career-accent2)]">Q{q.index}</span>
                       <span className="career-chip">{q.score}/10</span>
                     </div>
-                    <p className="text-sm text-white/75 mt-2">{q.prompt}</p>
-                    <p className="text-xs text-white/55 mt-2">{q.feedback}</p>
+                    <p className="text-sm text-[var(--career-text)] mt-2">{q.prompt}</p>
+                    <p className="text-xs text-[var(--career-muted)] mt-2">{q.feedback}</p>
                   </div>
                 ))}
               </div>
@@ -587,8 +587,8 @@ export default function InterviewHub() {
               {['week1', 'week2', 'week3'].map((w) =>
                 assessment.improvementPlan[w] ? (
                   <div key={w} className="career-card p-5">
-                    <div className="text-[11px] font-extrabold uppercase tracking-widest text-white/45">{weekTitles[w]}</div>
-                    <p className="text-sm text-white/75 mt-2">{assessment.improvementPlan[w]}</p>
+                    <div className="text-[11px] font-extrabold uppercase tracking-widest text-[var(--career-muted)]">{weekTitles[w]}</div>
+                    <p className="text-sm text-[var(--career-text)] mt-2">{assessment.improvementPlan[w]}</p>
                   </div>
                 ) : null,
               )}
@@ -598,7 +598,7 @@ export default function InterviewHub() {
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
             <div className="career-card p-5">
               <div className="career-kicker mb-2">Strengths</div>
-              <ul className="text-sm text-white/80 space-y-1">
+              <ul className="text-sm text-[var(--career-text)] space-y-1">
                 {(assessment.strengths || []).map((s, i) => (
                   <li key={i}>• {s}</li>
                 ))}
@@ -606,7 +606,7 @@ export default function InterviewHub() {
             </div>
             <div className="career-card p-5">
               <div className="career-kicker mb-2">Growth areas</div>
-              <ul className="text-sm text-white/80 space-y-1">
+              <ul className="text-sm text-[var(--career-text)] space-y-1">
                 {(assessment.improvements || []).map((s, i) => (
                   <li key={i}>• {s}</li>
                 ))}
@@ -614,7 +614,7 @@ export default function InterviewHub() {
             </div>
             <div className="career-card p-5">
               <div className="career-kicker mb-2">Next topics</div>
-              <ul className="text-sm text-white/80 space-y-1">
+              <ul className="text-sm text-[var(--career-text)] space-y-1">
                 {(assessment.nextTopics || []).map((s, i) => (
                   <li key={i}>• {s}</li>
                 ))}

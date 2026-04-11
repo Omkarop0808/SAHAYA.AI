@@ -776,14 +776,14 @@ export default function InterviewLab() {
         {(phase === 'interview' || phase === 'gd') ? (
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Live Session</div>
+              <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Live Session</div>
               <h1 className="font-display font-extrabold text-2xl mt-1">{config.type}</h1>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {config.subject && <span className="career-chip">{config.subject}</span>}
               {phase === 'interview' && <>
                 <span className="career-chip font-mono">Q {questionIndex + 1}/{totalQuestions}</span>
-                <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden border border-white/10">
+                <div className="w-24 h-2 bg-[var(--career-border)] bg-opacity-50 rounded-full overflow-hidden border border-[var(--career-border)]">
                   <div className="h-full rounded-full transition-all duration-500" style={{ width: `${((questionIndex) / totalQuestions) * 100}%`, background: 'linear-gradient(90deg, var(--career-accent), var(--career-accent2))' }} />
                 </div>
               </>}
@@ -851,15 +851,15 @@ export default function InterviewLab() {
       {showEndModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm" onClick={() => setShowEndModal(false)}>
           <div className="career-card p-8 max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-extrabold mb-2 text-white">{phase === 'gd' ? 'End Discussion Early?' : 'End Interview Early?'}</h3>
-            <p className="text-sm text-white/55 mb-6">
+            <h3 className="text-xl font-extrabold mb-2 text-[var(--career-text)]">{phase === 'gd' ? 'End Discussion Early?' : 'End Interview Early?'}</h3>
+            <p className="text-sm text-[var(--career-muted)] mb-6">
               {phase === 'gd'
                 ? `The discussion has been going for ${Math.floor((config.duration * 60 - timer) / 60)} minutes. A performance report will be generated.`
                 : `You've answered ${questionIndex} of ${totalQuestions} questions. A partial report will be generated.`
               }
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setShowEndModal(false)} className="flex-1 py-3 rounded-[12px] border border-white/20 font-bold text-sm text-white bg-white/[0.05] hover:bg-white/[0.1] transition-colors">Continue</button>
+              <button onClick={() => setShowEndModal(false)} className="flex-1 py-3 rounded-[12px] border border-[var(--career-border)] font-bold text-sm text-[var(--career-text)] bg-[var(--career-surface)] hover:bg-[var(--career-border)] hover:bg-opacity-40 transition-colors">Continue</button>
               <button onClick={phase === 'gd' ? handleEndGD : handleEndInterview} className="career-btn flex-1 justify-center !py-3">End & Get Report</button>
             </div>
           </div>
@@ -886,7 +886,7 @@ function LoadingOverlay({ msg }) {
             style={{ border: '3px solid rgba(139,92,246,0.25)', borderTopColor: '#06b6d4' }} />
           <IconComp size={22} className="absolute text-[var(--career-accent2)]" style={{ opacity: 0.85 }} />
         </div>
-        <p className="text-sm font-semibold text-center text-white/90">{msg}</p>
+        <p className="text-sm font-semibold text-center text-[var(--career-text)] text-opacity-90">{msg}</p>
       </div>
     </div>
   );
@@ -897,19 +897,19 @@ function SetupScreen({ config, setConfig, onStart, eduData, loadingMsg, pastSess
   return (
     <div className="space-y-6">
       <div>
-        <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Interview Lab</div>
+        <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Interview Lab</div>
         <h1 className="font-display font-extrabold text-3xl mt-1">Configure your mock interview</h1>
-        <p className="text-sm text-white/65 mt-2 max-w-3xl">Practice with AI-powered mock interviews featuring voice, camera, and real-time facial analysis. Get detailed performance feedback.</p>
+        <p className="text-sm text-[var(--career-muted)] mt-2 max-w-3xl">Practice with AI-powered mock interviews featuring voice, camera, and real-time facial analysis. Get detailed performance feedback.</p>
       </div>
 
       <div className="career-card p-6 space-y-4">
-        <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45">Choose interview type</div>
+        <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Choose interview type</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {TYPES.map(t => (
             <button key={t.id} onClick={() => setConfig(c => ({ ...c, type: t.id, subject: t.id === 'Domain-Specific' ? c.subject : '' }))}
-              className={`text-left rounded-[12px] border px-4 py-4 transition-all hover:-translate-y-0.5 cursor-pointer ${config.type === t.id ? 'border-[rgba(139,92,246,0.65)] bg-[rgba(139,92,246,0.16)]' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]'}`}>
-              <div className="font-extrabold text-white flex items-center gap-2"><t.icon size={20} strokeWidth={1.5} className="text-[var(--career-accent2)]" /> {t.id}</div>
-              <div className="text-xs text-white/55 mt-1">{t.desc}</div>
+              className={`text-left rounded-[12px] border px-4 py-4 transition-all hover:-translate-y-0.5 cursor-pointer ${config.type === t.id ? 'border-[rgba(139,92,246,0.65)] bg-[rgba(139,92,246,0.16)]' : 'border-[var(--career-border)] bg-[var(--career-surface)] hover:bg-[var(--career-surface)]'}`}>
+              <div className="font-extrabold text-[var(--career-text)] flex items-center gap-2"><t.icon size={20} strokeWidth={1.5} className="text-[var(--career-accent2)]" /> {t.id}</div>
+              <div className="text-xs text-[var(--career-muted)] mt-1">{t.desc}</div>
             </button>
           ))}
         </div>
@@ -917,18 +917,18 @@ function SetupScreen({ config, setConfig, onStart, eduData, loadingMsg, pastSess
         {/* Domain picker */}
         {config.type === 'Domain-Specific' && (
           <div className="mt-4">
-            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 flex items-center gap-2 mb-3"><Target size={14} /> Select Your Domain</div>
+            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] flex items-center gap-2 mb-3"><Target size={14} /> Select Your Domain</div>
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
               {DOMAINS.map(d => (
                 <button key={d.id} onClick={() => setConfig(c => ({ ...c, subject: c.subject === d.id ? '' : d.id }))}
                   className={`text-left p-3 rounded-[12px] border transition-all hover:-translate-y-0.5 cursor-pointer ${
                     config.subject === d.id
                       ? 'border-[rgba(6,182,212,0.7)] bg-[rgba(6,182,212,0.12)]'
-                      : 'border-white/10 bg-white/[0.03] hover:border-white/30'
+                      : 'border-[var(--career-border)] bg-[var(--career-surface)] hover:border-[var(--career-border)] border-opacity-80'
                   }`}>
-                  <span className={`block mb-1 ${config.subject === d.id ? 'text-[var(--career-accent2)]' : 'text-white/70'}`}><d.icon size={22} strokeWidth={1.5} /></span>
-                  <span className={`text-xs font-bold block ${config.subject === d.id ? 'text-white' : 'text-white/80'}`}>{d.short}</span>
-                  <span className="text-[10px] block text-white/40">{d.id}</span>
+                  <span className={`block mb-1 ${config.subject === d.id ? 'text-[var(--career-accent2)]' : 'text-[var(--career-muted)]'}`}><d.icon size={22} strokeWidth={1.5} /></span>
+                  <span className={`text-xs font-bold block ${config.subject === d.id ? 'text-[var(--career-text)]' : 'text-[var(--career-text)] text-opacity-80'}`}>{d.short}</span>
+                  <span className="text-[10px] block text-[var(--career-muted)] shrink-0 opacity-80">{d.id}</span>
                 </button>
               ))}
             </div>
@@ -939,20 +939,20 @@ function SetupScreen({ config, setConfig, onStart, eduData, loadingMsg, pastSess
       {config.type === 'Group Discussion' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="career-card p-6 space-y-3">
-            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 flex items-center gap-2"><Users size={14} /> Participants</div>
+            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] flex items-center gap-2"><Users size={14} /> Participants</div>
             <div className="flex flex-col gap-2">
               {GD_PARTICIPANT_OPTIONS.map(n => (
                 <button key={n} onClick={() => setConfig(c => ({ ...c, gdParticipants: n }))}
-                  className={`text-left rounded-[12px] border px-4 py-3 text-sm transition-all cursor-pointer ${config.gdParticipants === n ? 'border-[rgba(6,182,212,0.45)] bg-[rgba(6,182,212,0.08)] text-white' : 'border-white/10 bg-white/[0.03] text-white/70'}`}>{n} Participants</button>
+                  className={`text-left rounded-[12px] border px-4 py-3 text-sm transition-all cursor-pointer ${config.gdParticipants === n ? 'border-[rgba(6,182,212,0.45)] bg-[rgba(6,182,212,0.08)] text-[var(--career-text)]' : 'border-[var(--career-border)] bg-[var(--career-surface)] text-[var(--career-muted)]'}`}>{n} Participants</button>
               ))}
             </div>
           </div>
           <div className="career-card p-6 space-y-3">
-            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 flex items-center gap-2"><Timer size={14} /> Discussion Duration</div>
+            <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] flex items-center gap-2"><Timer size={14} /> Discussion Duration</div>
             <div className="flex flex-col gap-2">
               {GD_DURATIONS.map(d => (
                 <button key={d.val} onClick={() => setConfig(c => ({ ...c, duration: d.val }))}
-                  className={`text-left rounded-[12px] border px-4 py-3 text-sm transition-all cursor-pointer ${config.duration === d.val ? 'border-[rgba(6,182,212,0.45)] bg-[rgba(6,182,212,0.08)] text-white' : 'border-white/10 bg-white/[0.03] text-white/70'}`}>{d.label}</button>
+                  className={`text-left rounded-[12px] border px-4 py-3 text-sm transition-all cursor-pointer ${config.duration === d.val ? 'border-[rgba(6,182,212,0.45)] bg-[rgba(6,182,212,0.08)] text-[var(--career-text)]' : 'border-[var(--career-border)] bg-[var(--career-surface)] text-[var(--career-muted)]'}`}>{d.label}</button>
               ))}
             </div>
           </div>
@@ -960,7 +960,7 @@ function SetupScreen({ config, setConfig, onStart, eduData, loadingMsg, pastSess
       ) : (
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="career-card p-6 space-y-3">
-          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45">Difficulty</div>
+          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Difficulty</div>
           <div className="flex flex-wrap gap-2">
             {DIFFICULTIES.map(d => (
               <button key={d} onClick={() => setConfig(c => ({ ...c, difficulty: d }))}
@@ -969,20 +969,20 @@ function SetupScreen({ config, setConfig, onStart, eduData, loadingMsg, pastSess
           </div>
         </div>
         <div className="career-card p-6 space-y-3">
-          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45">Duration</div>
+          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Duration</div>
           <div className="flex flex-col gap-2">
             {DURATIONS.map(d => (
               <button key={d.val} onClick={() => setConfig(c => ({ ...c, duration: d.val }))}
-                className={`text-left rounded-[12px] border px-4 py-3 text-sm transition-all cursor-pointer ${config.duration === d.val ? 'border-[rgba(6,182,212,0.45)] bg-[rgba(6,182,212,0.08)] text-white' : 'border-white/10 bg-white/[0.03] text-white/70'}`}>{d.label}</button>
+                className={`text-left rounded-[12px] border px-4 py-3 text-sm transition-all cursor-pointer ${config.duration === d.val ? 'border-[rgba(6,182,212,0.45)] bg-[rgba(6,182,212,0.08)] text-[var(--career-text)]' : 'border-[var(--career-border)] bg-[var(--career-surface)] text-[var(--career-muted)]'}`}>{d.label}</button>
             ))}
           </div>
         </div>
         <div className="career-card p-6 space-y-3">
-          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45">Company Style</div>
+          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Company Style</div>
           <div className="flex flex-wrap gap-2">
             {COMPANIES.map(c => (
               <button key={c} onClick={() => setConfig(cfg => ({ ...cfg, companyStyle: cfg.companyStyle === c ? '' : c }))}
-                className={`rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${config.companyStyle === c ? 'border-[rgba(139,92,246,0.5)] bg-[rgba(139,92,246,0.15)] text-white' : 'border-white/10 text-white/65 hover:border-white/30'}`}>{c}</button>
+                className={`rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${config.companyStyle === c ? 'border-[rgba(139,92,246,0.5)] bg-[rgba(139,92,246,0.15)] text-[var(--career-text)]' : 'border-[var(--career-border)] text-[var(--career-muted)] hover:border-[var(--career-border)] border-opacity-80'}`}>{c}</button>
             ))}
           </div>
         </div>
@@ -991,17 +991,17 @@ function SetupScreen({ config, setConfig, onStart, eduData, loadingMsg, pastSess
 
       {pastSessions && pastSessions.length > 0 && (
         <div className="career-card p-6">
-          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 mb-3 flex items-center gap-2"><ClipboardList size={14} /> Recent Sessions</div>
+          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] mb-3 flex items-center gap-2"><ClipboardList size={14} /> Recent Sessions</div>
           <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
             {pastSessions.slice(0, 5).map(s => (
-              <div key={s.id} onClick={() => onViewSession?.(s)} className={`flex items-center justify-between px-4 py-3 border border-white/10 rounded-[12px] text-xs gap-3 bg-white/[0.03] ${s.report ? 'cursor-pointer hover:bg-white/[0.06] transition-colors' : 'opacity-60'}`}>
-                <span className="font-semibold truncate flex-1 text-white/80">{s.type}</span>
-                <span className="text-white/45">{s.difficulty}</span>
-                <span className="text-white/45">{new Date(s.startedAt).toLocaleDateString()}</span>
+              <div key={s.id} onClick={() => onViewSession?.(s)} className={`flex items-center justify-between px-4 py-3 border border-[var(--career-border)] rounded-[12px] text-xs gap-3 bg-[var(--career-surface)] ${s.report ? 'cursor-pointer hover:bg-[var(--career-surface)] transition-colors' : 'opacity-60'}`}>
+                <span className="font-semibold truncate flex-1 text-[var(--career-text)] text-opacity-80">{s.type}</span>
+                <span className="text-[var(--career-muted)]">{s.difficulty}</span>
+                <span className="text-[var(--career-muted)]">{new Date(s.startedAt).toLocaleDateString()}</span>
                 {s.overallScore != null ? (
                   <span className="font-bold min-w-[50px] text-right" style={{ color: s.overallScore >= 75 ? '#22c55e' : s.overallScore >= 50 ? '#eab308' : '#ef4444' }}>{s.overallScore}/100</span>
                 ) : (
-                  <span className="text-white/45 capitalize">{s.status}</span>
+                  <span className="text-[var(--career-muted)] capitalize">{s.status}</span>
                 )}
               </div>
             ))}
@@ -1066,9 +1066,9 @@ function InterviewRoom({ config, currentQuestion, questionIndex, totalQuestions,
             {isSpeaking && <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full il-pulse-anim border-2 border-[var(--career-surface)]" />}
           </div>
           <div className="flex flex-col">
-            <span className="text-xs font-bold text-white">AI Interviewer</span>
-            <span className="text-[10px] text-white/45">{aiThinking ? 'Thinking...' : isSpeaking ? 'Speaking...' : 'Listening'}</span>
-            <button onClick={() => setMuted(m => !m)} className="text-[10px] text-white/45 hover:text-white bg-transparent border-none cursor-pointer text-left mt-0.5 flex items-center gap-1">
+            <span className="text-xs font-bold text-[var(--career-text)]">AI Interviewer</span>
+            <span className="text-[10px] text-[var(--career-muted)]">{aiThinking ? 'Thinking...' : isSpeaking ? 'Speaking...' : 'Listening'}</span>
+            <button onClick={() => setMuted(m => !m)} className="text-[10px] text-[var(--career-muted)] hover:text-[var(--career-text)] bg-transparent border-none cursor-pointer text-left mt-0.5 flex items-center gap-1">
               {muted ? <VolumeX size={12} /> : <Volume2 size={12} />}
               {muted ? 'Unmute' : 'Mute'}
             </button>
@@ -1076,9 +1076,9 @@ function InterviewRoom({ config, currentQuestion, questionIndex, totalQuestions,
         </div>
 
         {/* Camera pip */}
-        <div className="rounded-[12px] overflow-hidden border border-[var(--career-border)] w-[140px] flex-shrink-0 relative bg-black/40">
+        <div className="rounded-[12px] overflow-hidden border border-[var(--career-border)] w-[140px] flex-shrink-0 relative bg-[var(--career-surface)]">
           <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-          {!cameraReady && <div className="absolute inset-0 flex flex-col items-center justify-center text-white/40 text-[10px]"><Camera size={14} className="mb-1 opacity-50" /> Off</div>}
+          {!cameraReady && <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--career-muted)] shrink-0 opacity-80 text-[10px]"><Camera size={14} className="mb-1 opacity-50" /> Off</div>}
         </div>
 
         {/* Metrics row */}
@@ -1092,22 +1092,22 @@ function InterviewRoom({ config, currentQuestion, questionIndex, totalQuestions,
 
       {/* Question card */}
       <div className={`career-card !p-4 flex-shrink-0 il-question-${questionAnim}`}>
-        <span className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-white/45 flex items-center gap-1.5 mb-2"><MessageSquare size={12} /> {config.type === 'Group Discussion' ? 'Discussion Turn' : 'Question'} {questionIndex + 1}</span>
+        <span className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] flex items-center gap-1.5 mb-2"><MessageSquare size={12} /> {config.type === 'Group Discussion' ? 'Discussion Turn' : 'Question'} {questionIndex + 1}</span>
         {aiThinking ? (
           <div className="flex items-center gap-2 py-2">
             <span className="il-dot" /><span className="il-dot il-dot-2" /><span className="il-dot il-dot-3" />
-            <span className="text-sm text-white/45 ml-2">Thinking...</span>
+            <span className="text-sm text-[var(--career-muted)] ml-2">Thinking...</span>
           </div>
         ) : (
           <>
-            <p className="text-sm font-semibold leading-relaxed whitespace-pre-wrap text-white/90">{currentQuestion?.text}</p>
+            <p className="text-sm font-semibold leading-relaxed whitespace-pre-wrap text-[var(--career-text)] text-opacity-90">{currentQuestion?.text}</p>
             {currentQuestion?.visual && (
-              <pre className="mt-2 p-3 bg-black/40 text-[var(--career-accent2)] rounded-[10px] text-[12px] overflow-x-auto font-mono whitespace-pre leading-relaxed border border-white/10">{currentQuestion.visual}</pre>
+              <pre className="mt-2 p-3 bg-[var(--career-surface)] text-[var(--career-accent2)] rounded-[10px] text-[12px] overflow-x-auto font-mono whitespace-pre leading-relaxed border border-[var(--career-border)]">{currentQuestion.visual}</pre>
             )}
           </>
         )}
         {currentQuestion?.hints?.length > 0 && !aiThinking && (
-          <div className="mt-1 text-[10px] text-white/40 flex items-start gap-1"><Lightbulb size={12} className="min-w-3 mt-0.5 text-amber-400" /> <span>{currentQuestion.hints[0]}</span></div>
+          <div className="mt-1 text-[10px] text-[var(--career-muted)] shrink-0 opacity-80 flex items-start gap-1"><Lightbulb size={12} className="min-w-3 mt-0.5 text-amber-400" /> <span>{currentQuestion.hints[0]}</span></div>
         )}
       </div>
 
@@ -1118,34 +1118,34 @@ function InterviewRoom({ config, currentQuestion, questionIndex, totalQuestions,
         ) : (
         <div className="career-card !p-4 h-full flex flex-col">
           <div className="flex gap-2 mb-3">
-            {SpeechRecognition && <button onClick={() => setInputMode('voice')} className={`px-3 py-1.5 rounded-[8px] text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${inputMode === 'voice' ? 'border-[rgba(6,182,212,0.6)] bg-[rgba(6,182,212,0.12)] text-white' : 'border-white/10 text-white/60 hover:border-white/30'}`}><Mic size={14} /> Voice</button>}
-            <button onClick={() => setInputMode('text')} className={`px-3 py-1.5 rounded-[8px] text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${inputMode === 'text' ? 'border-[rgba(6,182,212,0.6)] bg-[rgba(6,182,212,0.12)] text-white' : 'border-white/10 text-white/60 hover:border-white/30'}`}><Keyboard size={14} /> Type</button>
-            <button onClick={() => setInputMode('upload')} className={`px-3 py-1.5 rounded-[8px] text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${inputMode === 'upload' ? 'border-[rgba(6,182,212,0.6)] bg-[rgba(6,182,212,0.12)] text-white' : 'border-white/10 text-white/60 hover:border-white/30'}`}><Camera size={14} /> Upload</button>
+            {SpeechRecognition && <button onClick={() => setInputMode('voice')} className={`px-3 py-1.5 rounded-[8px] text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${inputMode === 'voice' ? 'border-[rgba(6,182,212,0.6)] bg-[rgba(6,182,212,0.12)] text-[var(--career-text)]' : 'border-[var(--career-border)] text-[var(--career-muted)] hover:border-[var(--career-border)] border-opacity-80'}`}><Mic size={14} /> Voice</button>}
+            <button onClick={() => setInputMode('text')} className={`px-3 py-1.5 rounded-[8px] text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${inputMode === 'text' ? 'border-[rgba(6,182,212,0.6)] bg-[rgba(6,182,212,0.12)] text-[var(--career-text)]' : 'border-[var(--career-border)] text-[var(--career-muted)] hover:border-[var(--career-border)] border-opacity-80'}`}><Keyboard size={14} /> Type</button>
+            <button onClick={() => setInputMode('upload')} className={`px-3 py-1.5 rounded-[8px] text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${inputMode === 'upload' ? 'border-[rgba(6,182,212,0.6)] bg-[rgba(6,182,212,0.12)] text-[var(--career-text)]' : 'border-[var(--career-border)] text-[var(--career-muted)] hover:border-[var(--career-border)] border-opacity-80'}`}><Camera size={14} /> Upload</button>
           </div>
 
           <div className="flex-1 min-h-0">
             {inputMode === 'voice' ? (
               <div className="flex flex-col items-center gap-2 justify-center h-full">
-                {transcript && <div className="w-full p-2 bg-white/[0.04] border border-white/10 rounded-[10px] text-xs text-white/80 max-h-[60px] overflow-y-auto il-transcript-live">{transcript}</div>}
+                {transcript && <div className="w-full p-2 bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[10px] text-xs text-[var(--career-text)] text-opacity-80 max-h-[60px] overflow-y-auto il-transcript-live">{transcript}</div>}
                 {isRecording && <div className="flex items-center gap-2 text-[10px] text-green-400 font-semibold"><span className="w-2 h-2 bg-green-500 rounded-full il-pulse-anim" />Listening... auto-submits on silence</div>}
                 <button onClick={toggleRecording} disabled={aiThinking}
-                  className={`w-14 h-14 rounded-full border flex items-center justify-center cursor-pointer transition-all ${isRecording ? 'bg-red-500 text-white scale-110 il-pulse-anim border-red-400' : 'bg-[var(--career-accent)] text-white hover:scale-105 border-[var(--career-accent)]'}`}>
+                  className={`w-14 h-14 rounded-full border flex items-center justify-center cursor-pointer transition-all ${isRecording ? 'bg-red-500 text-[var(--career-text)] scale-110 il-pulse-anim border-red-400' : 'bg-[var(--career-accent)] text-[var(--career-text)] hover:scale-105 border-[var(--career-accent)]'}`}>
                   {isRecording ? <Square size={24} fill="currentColor" /> : <Mic size={24} />}
                 </button>
-                <span className="text-[10px] text-white/45">{isRecording ? 'Click to stop' : 'Click to speak'}</span>
+                <span className="text-[10px] text-[var(--career-muted)]">{isRecording ? 'Click to stop' : 'Click to speak'}</span>
               </div>
             ) : inputMode === 'upload' ? (
               <div className="flex flex-col gap-3 h-full">
-                <div className="flex-1 border border-dashed border-white/20 rounded-[10px] bg-white/[0.03] flex flex-col items-center justify-center relative overflow-hidden">
+                <div className="flex-1 border border-dashed border-[var(--career-border)] rounded-[10px] bg-[var(--career-surface)] flex flex-col items-center justify-center relative overflow-hidden">
                   {uploadedImage ? (
                     <>
                       <img src={uploadedImage} alt="Uploaded Answer" className="max-h-full max-w-full object-contain" />
-                      <button onClick={() => setUploadedImage(null)} className="absolute top-2 right-2 bg-white/10 rounded-full p-2 hover:bg-white/20 cursor-pointer text-white"><X size={16} strokeWidth={3} /></button>
+                      <button onClick={() => setUploadedImage(null)} className="absolute top-2 right-2 bg-[var(--career-border)] bg-opacity-50 rounded-full p-2 hover:bg-white/20 cursor-pointer text-[var(--career-text)]"><X size={16} strokeWidth={3} /></button>
                     </>
                   ) : (
                     <>
-                      <div className="w-16 h-16 rounded-full bg-white/[0.05] flex items-center justify-center mb-4"><Camera size={28} className="text-white/40" /></div>
-                      <p className="text-xs text-white/55 font-semibold text-center px-4">Upload a photo of your handwritten code or answer.</p>
+                      <div className="w-16 h-16 rounded-full bg-[var(--career-surface)] flex items-center justify-center mb-4"><Camera size={28} className="text-[var(--career-muted)] shrink-0 opacity-80" /></div>
+                      <p className="text-xs text-[var(--career-muted)] font-semibold text-center px-4">Upload a photo of your handwritten code or answer.</p>
                       <label className="career-btn mt-3 cursor-pointer">
                         Select Image
                         <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
@@ -1156,7 +1156,7 @@ function InterviewRoom({ config, currentQuestion, questionIndex, totalQuestions,
                 {uploadedImage && (
                   <div className="flex gap-2 min-h-0">
                     <input type="text" placeholder="Add optional text note..." value={typedAnswer} onChange={e => setTypedAnswer(e.target.value)}
-                      className="flex-1 p-2 bg-black/30 border border-white/10 rounded-[10px] text-xs text-white outline-none focus:border-[var(--career-accent2)]" />
+                      className="flex-1 p-2 bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[10px] text-xs text-[var(--career-text)] outline-none focus:border-[var(--career-accent2)]" />
                     <button onClick={() => submitAnswer(typedAnswer, false, uploadedImage)} disabled={aiThinking}
                       className="career-btn disabled:opacity-40">Submit</button>
                   </div>
@@ -1167,16 +1167,16 @@ function InterviewRoom({ config, currentQuestion, questionIndex, totalQuestions,
                 <textarea value={typedAnswer} onChange={e => setTypedAnswer(e.target.value)}
                   onKeyDown={e => { if (e.ctrlKey && e.key === 'Enter') submitAnswer(typedAnswer); }}
                   placeholder="Type your answer... (Ctrl+Enter to submit)"
-                  className="w-full flex-1 p-3 bg-black/30 border border-white/10 rounded-[10px] text-sm text-white outline-none focus:border-[var(--career-accent2)] resize-none transition-colors min-h-0 placeholder:text-white/30" />
+                  className="w-full flex-1 p-3 bg-[var(--career-surface)] border border-[var(--career-border)] rounded-[10px] text-sm text-[var(--career-text)] outline-none focus:border-[var(--career-accent2)] resize-none transition-colors min-h-0 placeholder:text-[var(--career-text)] text-opacity-30" />
                 <button onClick={() => submitAnswer(typedAnswer)} disabled={!typedAnswer.trim() || aiThinking}
                   className="career-btn self-end disabled:opacity-40">Submit</button>
               </div>
             )}
           </div>
 
-          <div className="flex gap-3 mt-2 pt-2 border-t border-white/10">
+          <div className="flex gap-3 mt-2 pt-2 border-t border-[var(--career-border)]">
             <button onClick={() => submitAnswer('', true)} disabled={aiThinking}
-              className="px-4 py-1.5 rounded-[8px] border border-white/15 text-xs font-bold text-white/60 hover:text-white hover:border-white/30 transition-all cursor-pointer disabled:opacity-40 flex items-center gap-1.5 bg-transparent">
+              className="px-4 py-1.5 rounded-[8px] border border-[var(--career-border)] text-xs font-bold text-[var(--career-muted)] hover:text-[var(--career-text)] hover:border-[var(--career-border)] border-opacity-80 transition-all cursor-pointer disabled:opacity-40 flex items-center gap-1.5 bg-transparent">
               <SkipForward size={14} /> Skip
             </button>
             <button onClick={onEndClick} className="px-4 py-1.5 rounded-[8px] border border-red-500/40 text-red-400 text-xs font-bold hover:bg-red-500/10 bg-transparent transition-all cursor-pointer ml-auto flex items-center gap-1.5">
@@ -1221,23 +1221,23 @@ function GDRoom({ gdTopic, gdParticipants, gdTranscript, gdActiveSpeaker,
           <MessageSquare size={18} className="text-[var(--career-accent2)]" />
           <span className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-accent2)]">Discussion Topic</span>
         </div>
-        <p className="text-white font-bold text-lg leading-snug">{gdTopic}</p>
+        <p className="text-[var(--career-text)] font-bold text-lg leading-snug">{gdTopic}</p>
       </div>
 
       <div className="flex-1 flex gap-4 min-h-0">
         <div className="w-56 flex-shrink-0 flex flex-col gap-4">
           <div className="career-card flex-1">
-            <div className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-white/45 mb-3">Participants</div>
+            <div className="text-[10px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] mb-3">Participants</div>
             <div className="flex flex-col gap-2.5">
               {gdParticipants.map((p, i) => (
-                <div key={p.name} className={`flex items-center gap-2.5 px-3 py-2 rounded-[10px] transition-all ${gdActiveSpeaker === p.name ? 'bg-white/[0.08] ring-1 ring-[var(--career-accent)]' : 'bg-white/[0.03]'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 ${gdActiveSpeaker === p.name ? 'il-pulse-anim' : ''}`}
+                <div key={p.name} className={`flex items-center gap-2.5 px-3 py-2 rounded-[10px] transition-all ${gdActiveSpeaker === p.name ? 'bg-[var(--career-surface)] ring-1 ring-[var(--career-accent)]' : 'bg-[var(--career-surface)]'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[var(--career-text)] text-[10px] font-bold flex-shrink-0 ${gdActiveSpeaker === p.name ? 'il-pulse-anim' : ''}`}
                     style={{ backgroundColor: GD_COLORS[i] }}>
                     {getInitials(p.name)}
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs font-bold block truncate text-white/80">{p.name}</span>
-                    <span className="text-[9px] text-white/40 block truncate">{p.personality} · {p.stance}</span>
+                    <span className="text-xs font-bold block truncate text-[var(--career-text)] text-opacity-80">{p.name}</span>
+                    <span className="text-[9px] text-[var(--career-muted)] shrink-0 opacity-80 block truncate">{p.personality} · {p.stance}</span>
                   </div>
                   {gdActiveSpeaker === p.name && (
                     <div className="ml-auto flex items-end gap-0.5 h-4">
@@ -1246,24 +1246,24 @@ function GDRoom({ gdTopic, gdParticipants, gdTranscript, gdActiveSpeaker,
                   )}
                 </div>
               ))}
-              <div className={`flex items-center gap-2.5 px-3 py-2 rounded-[10px] transition-all border ${isRecording ? 'border-green-500/40 bg-green-500/10' : 'border-white/10 bg-white/[0.03]'}`}>
-                <div className="w-8 h-8 rounded-full bg-[var(--career-accent)] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">Y</div>
+              <div className={`flex items-center gap-2.5 px-3 py-2 rounded-[10px] transition-all border ${isRecording ? 'border-green-500/40 bg-green-500/10' : 'border-[var(--career-border)] bg-[var(--career-surface)]'}`}>
+                <div className="w-8 h-8 rounded-full bg-[var(--career-accent)] flex items-center justify-center text-[var(--career-text)] text-[10px] font-bold flex-shrink-0">Y</div>
                 <div className="min-w-0">
-                  <span className="text-xs font-bold block text-white/80">You</span>
-                  <span className="text-[9px] text-white/40 block">Candidate</span>
+                  <span className="text-xs font-bold block text-[var(--career-text)] text-opacity-80">You</span>
+                  <span className="text-[9px] text-[var(--career-muted)] shrink-0 opacity-80 block">Candidate</span>
                 </div>
                 {isRecording && <span className="ml-auto w-2 h-2 bg-green-500 rounded-full il-pulse-anim" />}
               </div>
             </div>
           </div>
 
-          <div className="rounded-[12px] overflow-hidden relative border border-[var(--career-border)] bg-black/40" style={{ height: '140px' }}>
+          <div className="rounded-[12px] overflow-hidden relative border border-[var(--career-border)] bg-[var(--career-surface)]" style={{ height: '140px' }}>
             <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" style={{ transform: 'scaleX(-1)' }} />
-            {!cameraReady && (<div className="absolute inset-0 flex items-center justify-center"><Camera size={24} className="text-white/40" /></div>)}
+            {!cameraReady && (<div className="absolute inset-0 flex items-center justify-center"><Camera size={24} className="text-[var(--career-muted)] shrink-0 opacity-80" /></div>)}
             {faceReady && (
               <div className="absolute bottom-1 left-1 right-1 flex gap-1">
-                <span className="bg-black/60 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">{faceMetrics.confidence}%</span>
-                <span className="bg-black/60 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold">{faceMetrics.stress}</span>
+                <span className="bg-black/60 text-[var(--career-text)] text-[8px] px-1.5 py-0.5 rounded-full font-bold">{faceMetrics.confidence}%</span>
+                <span className="bg-black/60 text-[var(--career-text)] text-[8px] px-1.5 py-0.5 rounded-full font-bold">{faceMetrics.stress}</span>
               </div>
             )}
           </div>
@@ -1274,7 +1274,7 @@ function GDRoom({ gdTopic, gdParticipants, gdTranscript, gdActiveSpeaker,
             <div className="flex flex-col gap-3">
               {gdTranscript.map((msg, i) => (
                 <div key={i} className={`flex gap-2.5 ${msg.isUser ? 'flex-row-reverse' : ''}`}>
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0 mt-0.5"
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[var(--career-text)] text-[9px] font-bold flex-shrink-0 mt-0.5"
                     style={{ backgroundColor: getParticipantColor(msg.speaker) }}>
                     {getInitials(msg.speaker)}
                   </div>
@@ -1282,10 +1282,10 @@ function GDRoom({ gdTopic, gdParticipants, gdTranscript, gdActiveSpeaker,
                     <span className="text-[10px] font-bold block mb-0.5" style={{ color: getParticipantColor(msg.speaker) }}>{msg.speaker}</span>
                     <div className={`px-3 py-2 rounded-[12px] text-sm leading-relaxed ${
                       msg.isUser 
-                        ? 'bg-[var(--career-accent)] text-white rounded-tr-none' 
+                        ? 'bg-[var(--career-accent)] text-[var(--career-text)] rounded-tr-none' 
                         : msg.speaker === 'Moderator' 
-                          ? 'bg-white/[0.06] text-white/70 rounded-tl-none italic'
-                          : 'bg-white/[0.04] text-white/80 rounded-tl-none'
+                          ? 'bg-[var(--career-surface)] text-[var(--career-muted)] rounded-tl-none italic'
+                          : 'bg-[var(--career-surface)] text-[var(--career-text)] text-opacity-80 rounded-tl-none'
                     }`}>
                       {msg.text}
                     </div>
@@ -1297,14 +1297,14 @@ function GDRoom({ gdTopic, gdParticipants, gdTranscript, gdActiveSpeaker,
           </div>
 
           <div className="career-card !py-3 flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isRecording ? 'bg-green-500 il-pulse-anim' : 'bg-white/10'}`}>
-              {isRecording ? <Mic size={20} className="text-white" /> : <MicOff size={20} className="text-white/40" />}
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isRecording ? 'bg-green-500 il-pulse-anim' : 'bg-[var(--career-border)] bg-opacity-50'}`}>
+              {isRecording ? <Mic size={20} className="text-[var(--career-text)]" /> : <MicOff size={20} className="text-[var(--career-muted)] shrink-0 opacity-80" />}
             </div>
             <div className="flex-1 min-w-0">
               {transcript ? (
-                <p className="text-xs text-white/70 truncate">{transcript}</p>
+                <p className="text-xs text-[var(--career-muted)] truncate">{transcript}</p>
               ) : (
-                <p className="text-xs text-white/40">{isRecording ? 'Mic is live — speak anytime to join the discussion...' : 'Mic is off'}</p>
+                <p className="text-xs text-[var(--career-muted)] shrink-0 opacity-80">{isRecording ? 'Mic is live — speak anytime to join the discussion...' : 'Mic is off'}</p>
               )}
               {isRecording && (
                 <div className="flex items-end gap-0.5 mt-1 h-3">
@@ -1322,8 +1322,8 @@ function GDRoom({ gdTopic, gdParticipants, gdTranscript, gdActiveSpeaker,
                 </div>
               )}
             </div>
-            <button onClick={() => setMuted(!muted)} className="p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer" title={muted ? 'Unmute AI voices' : 'Mute AI voices'}>
-              {muted ? <VolumeX size={18} className="text-white/40" /> : <Volume2 size={18} className="text-white" />}
+            <button onClick={() => setMuted(!muted)} className="p-2 rounded-full hover:bg-[var(--career-border)] bg-opacity-50 transition-colors cursor-pointer" title={muted ? 'Unmute AI voices' : 'Mute AI voices'}>
+              {muted ? <VolumeX size={18} className="text-[var(--career-muted)] shrink-0 opacity-80" /> : <Volume2 size={18} className="text-[var(--career-text)]" />}
             </button>
             <button onClick={onEndClick} className="px-4 py-2 rounded-[10px] border border-red-500/40 text-red-400 text-xs font-bold hover:bg-red-500/10 bg-transparent transition-all cursor-pointer flex items-center gap-1.5">
               <Power size={14} /> End
@@ -1339,7 +1339,7 @@ function GDRoom({ gdTopic, gdParticipants, gdTranscript, gdActiveSpeaker,
 function AIAvatar({ isSpeaking, aiThinking }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="w-28 h-28 rounded-full bg-white/[0.06] border border-[var(--career-border)] flex items-center justify-center relative">
+      <div className="w-28 h-28 rounded-full bg-[var(--career-surface)] border border-[var(--career-border)] flex items-center justify-center relative">
         <svg viewBox="0 0 100 100" width="80" height="80">
           <circle cx="50" cy="32" r="18" fill="var(--career-accent2)" />
           <path d="M25,95 Q25,60 50,55 Q75,60 75,95" fill="var(--career-accent2)" />
@@ -1361,11 +1361,11 @@ function AIAvatar({ isSpeaking, aiThinking }) {
 /* ─── METRIC BADGE ─── */
 function MetricBadge({ label, value, icon }) {
   return (
-    <div className="bg-white/[0.04] rounded-[10px] p-3 flex items-center gap-2 il-metric-pop border border-white/10">
+    <div className="bg-[var(--career-surface)] rounded-[10px] p-3 flex items-center gap-2 il-metric-pop border border-[var(--career-border)]">
       <span className="text-[var(--career-accent2)]">{icon}</span>
       <div>
-        <span className="text-[9px] text-white/40 block uppercase tracking-wider font-bold">{label}</span>
-        <span className="text-sm font-bold text-white">{value}</span>
+        <span className="text-[9px] text-[var(--career-muted)] shrink-0 opacity-80 block uppercase tracking-wider font-bold">{label}</span>
+        <span className="text-sm font-bold text-[var(--career-text)]">{value}</span>
       </div>
     </div>
   );
@@ -1394,13 +1394,13 @@ function CodeEditor({ onSubmit, disabled, onSkip, onEnd }) {
 
   return (
     <div className="rounded-[12px] overflow-hidden border border-[var(--career-border)]">
-      <div className="flex items-center justify-between px-5 py-3 bg-[#1e1e1e] border-b border-white/10">
+      <div className="flex items-center justify-between px-5 py-3 bg-[var(--career-surface)] border-b border-[var(--career-border)]">
         <div className="flex items-center gap-3">
           <span className="text-[var(--career-accent2)] text-xs font-bold">💻 CODE EDITOR</span>
-          <span className="text-[10px] text-white/30 font-mono">Logic will be evaluated, not syntax</span>
+          <span className="text-[10px] text-[var(--career-text)] text-opacity-30 font-mono">Logic will be evaluated, not syntax</span>
         </div>
         <select value={lang} onChange={e => setLang(e.target.value)}
-          className="bg-[#2d2d2d] text-xs text-white/70 border border-white/15 rounded-[8px] px-3 py-1.5 outline-none cursor-pointer">
+          className="bg-[var(--career-surface)] text-xs text-[var(--career-muted)] border border-[var(--career-border)] rounded-[8px] px-3 py-1.5 outline-none cursor-pointer">
           <option value="javascript">JavaScript</option>
           <option value="python">Python</option>
           <option value="java">Java</option>
@@ -1414,12 +1414,12 @@ function CodeEditor({ onSubmit, disabled, onSkip, onEnd }) {
         </select>
       </div>
 
-      <div className="flex bg-[#1e1e1e] min-h-[280px] max-h-[450px]">
-        <div className="py-4 px-2 select-none text-right border-r border-white/10 min-w-[40px]" style={{ lineHeight: '1.6rem' }}>
+      <div className="flex bg-[var(--career-surface)] min-h-[280px] max-h-[450px]">
+        <div className="py-4 px-2 select-none text-right border-r border-[var(--career-border)] min-w-[40px]" style={{ lineHeight: '1.6rem' }}>
           {lines.map((_, i) => (
-            <div key={i} className="text-[11px] text-white/25 font-mono">{i + 1}</div>
+            <div key={i} className="text-[11px] text-[var(--career-text)] text-opacity-25 font-mono">{i + 1}</div>
           ))}
-          {lines.length === 0 && <div className="text-[11px] text-white/25 font-mono">1</div>}
+          {lines.length === 0 && <div className="text-[11px] text-[var(--career-text)] text-opacity-25 font-mono">1</div>}
         </div>
         <textarea
           value={code}
@@ -1427,20 +1427,20 @@ function CodeEditor({ onSubmit, disabled, onSkip, onEnd }) {
           onKeyDown={handleKeyDown}
           spellCheck={false}
           placeholder={`// Write your ${lang} solution here...\n// Tab inserts 2 spaces\n// Ctrl+Enter to submit`}
-          className="flex-1 bg-[#1e1e1e] text-[#d4d4d4] font-mono text-[13px] p-4 outline-none resize-none overflow-auto placeholder:text-white/20"
+          className="flex-1 bg-[var(--career-surface)] text-[var(--career-text)] font-mono text-[13px] p-4 outline-none resize-none overflow-auto placeholder:text-[var(--career-text)] text-opacity-20"
           style={{ lineHeight: '1.6rem', tabSize: 2 }}
         />
       </div>
 
-      <div className="px-5 py-3 bg-[#1a1a24] border-t border-white/10 flex items-center justify-between">
+      <div className="px-5 py-3 bg-[var(--career-surface)] border-t border-[var(--career-border)] flex items-center justify-between">
         <div className="flex gap-3">
           <button onClick={onSkip} disabled={disabled}
-            className="px-4 py-1.5 rounded-[8px] border border-white/15 text-xs font-medium text-white/40 hover:text-white hover:border-white/30 transition-all cursor-pointer bg-transparent disabled:opacity-40 flex items-center gap-1.5"><SkipForward size={14} /> Skip</button>
+            className="px-4 py-1.5 rounded-[8px] border border-[var(--career-border)] text-xs font-medium text-[var(--career-muted)] shrink-0 opacity-80 hover:text-[var(--career-text)] hover:border-[var(--career-border)] border-opacity-80 transition-all cursor-pointer bg-transparent disabled:opacity-40 flex items-center gap-1.5"><SkipForward size={14} /> Skip</button>
           <button onClick={onEnd}
             className="px-4 py-1.5 rounded-[8px] border border-red-500/40 text-xs font-medium text-red-400 hover:bg-red-500/10 transition-all cursor-pointer bg-transparent flex items-center gap-1.5"><Power size={14} /> End</button>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[10px] text-white/30">{lines.filter(l => l.trim()).length} lines · Ctrl+Enter</span>
+          <span className="text-[10px] text-[var(--career-text)] text-opacity-30">{lines.filter(l => l.trim()).length} lines · Ctrl+Enter</span>
           <button onClick={() => { if (code.trim()) onSubmit(`[CODE:${lang}]\n${code}`); }}
             disabled={!code.trim() || disabled}
             className="career-btn disabled:opacity-40 flex items-center gap-1.5">
@@ -1484,23 +1484,23 @@ function ReportScreen({ report, config, scoreColor, downloadReport, onRetry }) {
       <div className="career-card !p-8 flex flex-col sm:flex-row items-center gap-8" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.22), rgba(6,182,212,0.12))' }}>
         <ScoreRing score={report.overallScore || 0} color={scoreColor(report.overallScore || 0)} />
         <div className="flex-1 text-center sm:text-left">
-          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-white/55">Performance Report</div>
-          <h2 className="text-2xl font-extrabold text-white mt-1">{report.verdict || 'Report'}</h2>
+          <div className="text-[11px] font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)]">Performance Report</div>
+          <h2 className="text-2xl font-extrabold text-[var(--career-text)] mt-1">{report.verdict || 'Report'}</h2>
           <p className="text-[var(--career-accent2)] font-bold text-lg mt-1">Grade: {report.grade}</p>
-          <p className="text-white/50 text-sm mt-1">{report.hiringRecommendation}</p>
+          <p className="text-[var(--career-muted)] text-sm mt-1">{report.hiringRecommendation}</p>
         </div>
       </div>
 
       {/* Radar chart */}
       {catEntries.length > 0 && (
         <div className="career-card il-report-section" style={{ animationDelay: '0.1s' }}>
-          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 mb-4">Category Breakdown</div>
+          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] mb-4">Category Breakdown</div>
           <RadarChart scores={cats} />
           <div className="flex flex-col gap-3 mt-4">
             {catEntries.map(([k, v]) => (
               <div key={k} className="flex items-center gap-3">
-                <span className="text-xs text-white/50 w-40 capitalize">{k.replace(/([A-Z])/g, ' $1')}</span>
-                <div className="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
+                <span className="text-xs text-[var(--career-muted)] w-40 capitalize">{k.replace(/([A-Z])/g, ' $1')}</span>
+                <div className="flex-1 h-3 bg-[var(--career-border)] bg-opacity-50 rounded-full overflow-hidden">
                   <div className="h-full rounded-full il-bar-grow" style={{ '--bar-w': `${v}%`, background: scoreColor(v) }} />
                 </div>
                 <span className="text-sm font-bold w-8 text-right" style={{ color: scoreColor(v) }}>{v}</span>
@@ -1514,30 +1514,30 @@ function ReportScreen({ report, config, scoreColor, downloadReport, onRetry }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="career-card il-report-section" style={{ animationDelay: '0.2s' }}>
           <h3 className="text-base font-extrabold mb-3 text-green-400 flex items-center gap-1.5"><CheckCircle2 size={18} /> Strengths</h3>
-          <ul className="flex flex-col gap-2">{(report.strengths || []).map((s, i) => <li key={i} className="text-sm text-white/70">• {s}</li>)}</ul>
+          <ul className="flex flex-col gap-2">{(report.strengths || []).map((s, i) => <li key={i} className="text-sm text-[var(--career-muted)]">• {s}</li>)}</ul>
         </div>
         <div className="career-card il-report-section" style={{ animationDelay: '0.3s' }}>
           <h3 className="text-base font-extrabold mb-3 text-red-400 flex items-center gap-1.5"><AlertTriangle size={18} /> Weaknesses</h3>
-          <ul className="flex flex-col gap-2">{(report.weaknesses || []).map((s, i) => <li key={i} className="text-sm text-white/70">• {s}</li>)}</ul>
+          <ul className="flex flex-col gap-2">{(report.weaknesses || []).map((s, i) => <li key={i} className="text-sm text-[var(--career-muted)]">• {s}</li>)}</ul>
         </div>
       </div>
 
       {/* Questions Review */}
       <div className="career-card il-report-section" style={{ animationDelay: '0.4s' }}>
-        <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 mb-4 flex items-center gap-2"><FileText size={16} /> Questions Review</div>
+        <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] mb-4 flex items-center gap-2"><FileText size={16} /> Questions Review</div>
         <div className="flex flex-col gap-3">
           {(report.questionsReview || []).map((q, i) => (
-            <div key={i} className="border border-white/10 rounded-[12px] overflow-hidden">
-              <button onClick={() => setExpandedQ(expandedQ === i ? null : i)} className="w-full flex items-center justify-between px-5 py-3 bg-transparent border-none cursor-pointer text-left text-white">
-                <span className="text-sm font-medium flex-1 text-white/80">Q{i + 1}: {q.question?.slice(0, 80)}{q.question?.length > 80 ? '...' : ''}</span>
+            <div key={i} className="border border-[var(--career-border)] rounded-[12px] overflow-hidden">
+              <button onClick={() => setExpandedQ(expandedQ === i ? null : i)} className="w-full flex items-center justify-between px-5 py-3 bg-transparent border-none cursor-pointer text-left text-[var(--career-text)]">
+                <span className="text-sm font-medium flex-1 text-[var(--career-text)] text-opacity-80">Q{i + 1}: {q.question?.slice(0, 80)}{q.question?.length > 80 ? '...' : ''}</span>
                 <span className="text-sm font-bold px-2 py-0.5 rounded-lg" style={{ color: scoreColor(q.score * 10), background: `${scoreColor(q.score * 10)}20` }}>{q.score}/10</span>
               </button>
               {expandedQ === i && (
                 <div className="px-5 pb-4 flex flex-col gap-2">
-                  <div className="text-xs"><strong className="text-white/40">Your answer:</strong> <span className="text-white/70">{q.yourAnswer}</span></div>
-                  <div className="text-xs"><strong className="text-green-400">Correct answer:</strong> <span className="text-white/70">{q.correctAnswer}</span></div>
-                  <div className="text-xs"><strong className="text-red-400">What you missed:</strong> <span className="text-white/70">{q.whatYouMissed}</span></div>
-                  <div className="text-xs"><strong className="text-[var(--career-accent2)]">How to improve:</strong> <span className="text-white/70">{q.howToImprove}</span></div>
+                  <div className="text-xs"><strong className="text-[var(--career-muted)] shrink-0 opacity-80">Your answer:</strong> <span className="text-[var(--career-muted)]">{q.yourAnswer}</span></div>
+                  <div className="text-xs"><strong className="text-green-400">Correct answer:</strong> <span className="text-[var(--career-muted)]">{q.correctAnswer}</span></div>
+                  <div className="text-xs"><strong className="text-red-400">What you missed:</strong> <span className="text-[var(--career-muted)]">{q.whatYouMissed}</span></div>
+                  <div className="text-xs"><strong className="text-[var(--career-accent2)]">How to improve:</strong> <span className="text-[var(--career-muted)]">{q.howToImprove}</span></div>
                 </div>
               )}
             </div>
@@ -1548,25 +1548,25 @@ function ReportScreen({ report, config, scoreColor, downloadReport, onRetry }) {
       {/* Voice & Face summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="career-card il-report-section" style={{ animationDelay: '0.5s' }}>
-          <h3 className="text-base font-extrabold mb-3 flex items-center gap-1.5 text-white"><Mic size={18} className="text-[var(--career-accent2)]" /> Voice Analysis</h3>
+          <h3 className="text-base font-extrabold mb-3 flex items-center gap-1.5 text-[var(--career-text)]"><Mic size={18} className="text-[var(--career-accent2)]" /> Voice Analysis</h3>
           {report.voiceAnalysisSummary && <>
-            <div className="text-sm space-y-1 text-white/70">
-              <p>Pace: <strong className="text-white">{report.voiceAnalysisSummary.averagePace}</strong></p>
-              <p>Volume: <strong className="text-white">{report.voiceAnalysisSummary.volumeConsistency}</strong></p>
-              <p>Stability: <strong className="text-white">{report.voiceAnalysisSummary.pitchStability}</strong></p>
+            <div className="text-sm space-y-1 text-[var(--career-muted)]">
+              <p>Pace: <strong className="text-[var(--career-text)]">{report.voiceAnalysisSummary.averagePace}</strong></p>
+              <p>Volume: <strong className="text-[var(--career-text)]">{report.voiceAnalysisSummary.volumeConsistency}</strong></p>
+              <p>Stability: <strong className="text-[var(--career-text)]">{report.voiceAnalysisSummary.pitchStability}</strong></p>
             </div>
-            <ul className="mt-3 flex flex-col gap-2">{(report.voiceAnalysisSummary.voiceTips || []).map((t, i) => <li key={i} className="text-xs text-white/50 flex items-start gap-1"><Lightbulb size={12} className="min-w-3 mt-0.5 text-amber-400" /> <span>{t}</span></li>)}</ul>
+            <ul className="mt-3 flex flex-col gap-2">{(report.voiceAnalysisSummary.voiceTips || []).map((t, i) => <li key={i} className="text-xs text-[var(--career-muted)] flex items-start gap-1"><Lightbulb size={12} className="min-w-3 mt-0.5 text-amber-400" /> <span>{t}</span></li>)}</ul>
           </>}
         </div>
         <div className="career-card il-report-section" style={{ animationDelay: '0.6s' }}>
-          <h3 className="text-base font-extrabold mb-3 flex items-center gap-1.5 text-white"><Camera size={18} className="text-[var(--career-accent2)]" /> Facial Analysis</h3>
+          <h3 className="text-base font-extrabold mb-3 flex items-center gap-1.5 text-[var(--career-text)]"><Camera size={18} className="text-[var(--career-accent2)]" /> Facial Analysis</h3>
           {report.facialAnalysisSummary && <>
-            <div className="text-sm space-y-1 text-white/70">
-              <p>Confidence: <strong className="text-white">{report.facialAnalysisSummary.averageConfidence}%</strong></p>
-              <p>Eye Contact: <strong className="text-white">{report.facialAnalysisSummary.eyeContactRating}</strong></p>
-              <p>Stress: <strong className="text-white">{report.facialAnalysisSummary.stressPattern}</strong></p>
+            <div className="text-sm space-y-1 text-[var(--career-muted)]">
+              <p>Confidence: <strong className="text-[var(--career-text)]">{report.facialAnalysisSummary.averageConfidence}%</strong></p>
+              <p>Eye Contact: <strong className="text-[var(--career-text)]">{report.facialAnalysisSummary.eyeContactRating}</strong></p>
+              <p>Stress: <strong className="text-[var(--career-text)]">{report.facialAnalysisSummary.stressPattern}</strong></p>
             </div>
-            <ul className="mt-3 flex flex-col gap-2">{(report.facialAnalysisSummary.bodyLanguageTips || []).map((t, i) => <li key={i} className="text-xs text-white/50 flex items-start gap-1"><Lightbulb size={12} className="min-w-3 mt-0.5 text-amber-400" /> <span>{t}</span></li>)}</ul>
+            <ul className="mt-3 flex flex-col gap-2">{(report.facialAnalysisSummary.bodyLanguageTips || []).map((t, i) => <li key={i} className="text-xs text-[var(--career-muted)] flex items-start gap-1"><Lightbulb size={12} className="min-w-3 mt-0.5 text-amber-400" /> <span>{t}</span></li>)}</ul>
           </>}
         </div>
       </div>
@@ -1574,13 +1574,13 @@ function ReportScreen({ report, config, scoreColor, downloadReport, onRetry }) {
       {/* Improvement plan */}
       {report.improvementPlan && (
         <div className="career-card il-report-section" style={{ animationDelay: '0.7s' }}>
-          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-white/45 mb-4 flex items-center gap-2"><Calendar size={16} /> 3-Week Improvement Plan</div>
+          <div className="text-xs font-extrabold uppercase tracking-[0.28em] text-[var(--career-muted)] mb-4 flex items-center gap-2"><Calendar size={16} /> 3-Week Improvement Plan</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {report.improvementPlan.map((p, i) => (
-              <div key={i} className="bg-white/[0.04] rounded-[12px] p-4 border border-white/10">
+              <div key={i} className="bg-[var(--career-surface)] rounded-[12px] p-4 border border-[var(--career-border)]">
                 <span className="career-chip">Week {p.week}</span>
-                <p className="text-sm font-bold mt-2 text-white">{p.focus}</p>
-                <p className="text-xs text-white/50 mt-1">{p.action}</p>
+                <p className="text-sm font-bold mt-2 text-[var(--career-text)]">{p.focus}</p>
+                <p className="text-xs text-[var(--career-muted)] mt-1">{p.action}</p>
               </div>
             ))}
           </div>
@@ -1591,7 +1591,7 @@ function ReportScreen({ report, config, scoreColor, downloadReport, onRetry }) {
       <div className="flex flex-wrap gap-3">
         <button onClick={downloadReport} className="career-btn">📥 Download Report</button>
         <button onClick={onRetry} className="career-btn">🔄 Retry Interview</button>
-        <button onClick={() => { onRetry(); }} className="px-4 py-2 rounded-[12px] border border-white/20 text-white/70 text-xs font-bold hover:border-white/40 transition-all cursor-pointer bg-transparent">🎯 Try Different Type</button>
+        <button onClick={() => { onRetry(); }} className="px-4 py-2 rounded-[12px] border border-[var(--career-border)] text-[var(--career-muted)] text-xs font-bold hover:border-white/40 transition-all cursor-pointer bg-transparent">🎯 Try Different Type</button>
       </div>
     </div>
   );
@@ -1610,8 +1610,8 @@ function ScoreRing({ score, color }) {
           transform="rotate(-90 60 60)" className="il-ring-anim" style={{ '--ring-offset': offset, '--ring-circ': c }} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-extrabold text-white">{score}</span>
-        <span className="text-xs text-white/50">/100</span>
+        <span className="text-3xl font-extrabold text-[var(--career-text)]">{score}</span>
+        <span className="text-xs text-[var(--career-muted)]">/100</span>
       </div>
     </div>
   );

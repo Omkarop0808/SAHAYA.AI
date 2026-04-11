@@ -30,9 +30,9 @@ function SkeletonCard({ lines = 3 }) {
   return (
     <div className="career-card">
       <div className="animate-pulse space-y-3">
-        <div className="h-4 w-40 rounded bg-white/10" />
+        <div className="h-4 w-40 rounded bg-[var(--career-surface)] border border-[var(--career-border)]" />
         {Array.from({ length: lines }).map((_, i) => (
-          <div key={i} className="h-3 w-full rounded bg-white/10" />
+          <div key={i} className="h-3 w-full rounded bg-[var(--career-surface)] border border-[var(--career-border)]" />
         ))}
       </div>
     </div>
@@ -43,7 +43,7 @@ function ErrorState({ message, onRetry }) {
   return (
     <div className="career-card border-red-500/40 text-red-200">
       <div className="font-semibold">Something went wrong</div>
-      <div className="text-sm text-white/70 mt-1">{message}</div>
+      <div className="text-sm text-[var(--career-muted)] mt-1">{message}</div>
       {onRetry ? (
         <button className="career-btn mt-3" onClick={onRetry}>
           Retry
@@ -57,7 +57,7 @@ function EmptyState({ title, desc, actionLabel, onAction }) {
   return (
     <div className="career-card">
       <div className="font-semibold">{title}</div>
-      <div className="text-sm text-white/65 mt-1">{desc}</div>
+      <div className="text-sm text-[var(--career-muted)] mt-1">{desc}</div>
       {onAction ? (
         <button className="career-btn mt-3" onClick={onAction}>
           {actionLabel || 'Get started'}
@@ -111,7 +111,7 @@ function AtsTab() {
     <div className="space-y-4">
       <div className="career-card">
         <div className="font-semibold">ATS Resume Scanner</div>
-        <div className="text-sm text-white/65 mt-1">Paste your resume and get an ATS score + concrete fixes.</div>
+        <div className="text-sm text-[var(--career-muted)] mt-1">Paste your resume and get an ATS score + concrete fixes.</div>
         <div className="mt-4 grid grid-cols-1 gap-3">
           <input
             className="career-input"
@@ -139,24 +139,24 @@ function AtsTab() {
             <div>
               <div className="career-kicker">ATS Score</div>
               <div className="font-display font-extrabold text-3xl mt-1">{result.ats_score}%</div>
-              <div className="text-sm text-white/70 mt-1">{result.summary}</div>
+              <div className="text-sm text-[var(--career-muted)] mt-1">{result.summary}</div>
             </div>
           </div>
 
           <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
               <div className="font-semibold">Missing keywords</div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {(result.missing_keywords || []).slice(0, 18).map((k) => (
-                  <span key={k} className="px-2 py-1 text-xs rounded bg-white/10 border border-white/10">
+                  <span key={k} className="px-2 py-1 text-xs rounded bg-[var(--career-surface)] border border-[var(--career-border)] border border-[var(--career-border)]">
                     {k}
                   </span>
                 ))}
               </div>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
               <div className="font-semibold">Top issues</div>
-              <ul className="mt-2 text-sm text-white/70 space-y-2">
+              <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-2">
                 {(result.issues || []).slice(0, 8).map((it, idx) => (
                   <li key={idx}>
                     <span className="font-semibold text-white/85">{it.category}</span>: {it.message}
@@ -203,7 +203,7 @@ function SkillGapTab() {
     <div className="space-y-4">
       <div className="career-card">
         <div className="font-semibold">AI Career Gap Analyzer</div>
-        <div className="text-sm text-white/65 mt-1">Compare your skills vs the market for your target role.</div>
+        <div className="text-sm text-[var(--career-muted)] mt-1">Compare your skills vs the market for your target role.</div>
         <div className="mt-4 grid grid-cols-1 gap-3">
           <input className="career-input" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Target role e.g. Data Analyst" />
           <input className="career-input" value={experienceLevel} onChange={(e) => setExperienceLevel(e.target.value)} placeholder="Experience level e.g. Fresher / Entry / Junior" />
@@ -220,11 +220,11 @@ function SkillGapTab() {
         <div className="career-card">
           <div className="career-kicker">Readiness</div>
           <div className="font-display font-extrabold text-3xl mt-1">{analysis.readiness_score}/100</div>
-          <div className="text-sm text-white/70 mt-2">{analysis.overall_feedback}</div>
+          <div className="text-sm text-[var(--career-muted)] mt-2">{analysis.overall_feedback}</div>
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
               <div className="font-semibold">Quick wins</div>
-              <ul className="mt-2 text-sm text-white/70 space-y-2">
+              <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-2">
                 {(analysis.top_3_quick_wins || []).map((w) => (
                   <li key={w.skill}>
                     <span className="font-semibold text-white/85">{w.skill}</span> — {w.days_to_learn} days, +{w.score_boost} score
@@ -232,9 +232,9 @@ function SkillGapTab() {
                 ))}
               </ul>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
               <div className="font-semibold">Critical missing skills</div>
-              <ul className="mt-2 text-sm text-white/70 space-y-2">
+              <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-2">
                 {(analysis.missing_skills || []).slice(0, 8).map((s) => (
                   <li key={s.name}>
                     <span className="font-semibold text-white/85">{s.name}</span> — {s.priority} ({s.learning_time_days} days)
@@ -275,7 +275,7 @@ function JobMatchTab() {
     <div className="space-y-4">
       <div className="career-card">
         <div className="font-semibold">Job Match Score</div>
-        <div className="text-sm text-white/65 mt-1">Paste a JD → get match % + missing skills list.</div>
+        <div className="text-sm text-[var(--career-muted)] mt-1">Paste a JD → get match % + missing skills list.</div>
         <div className="mt-4 grid grid-cols-1 gap-3">
           <input className="career-input" value={targetRole} onChange={(e) => setTargetRole(e.target.value)} placeholder="Target role (optional)" />
           <textarea className="career-input min-h-[140px]" value={jdText} onChange={(e) => setJdText(e.target.value)} placeholder="Paste Job Description…" />
@@ -292,18 +292,18 @@ function JobMatchTab() {
           <div className="career-kicker">Match</div>
           <div className="font-display font-extrabold text-3xl mt-1">{match.match_score}%</div>
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
               <div className="font-semibold">Missing skills</div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {(match.missing_skills || []).slice(0, 18).map((k) => (
-                  <span key={k} className="px-2 py-1 text-xs rounded bg-white/10 border border-white/10">{k}</span>
+                  <span key={k} className="px-2 py-1 text-xs rounded bg-[var(--career-surface)] border border-[var(--career-border)] border border-[var(--career-border)]">{k}</span>
                 ))}
               </div>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
               <div className="font-semibold">Projected after roadmap</div>
-              <div className="mt-1 text-2xl font-bold text-white/90">{match.projected_match_after_roadmap}%</div>
-              <ul className="mt-2 text-sm text-white/70 space-y-1">
+              <div className="mt-1 text-2xl font-bold text-[var(--career-text)] text-opacity-90">{match.projected_match_after_roadmap}%</div>
+              <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-1">
                 {(match.notes || []).slice(0, 6).map((n, idx) => <li key={idx}>- {n}</li>)}
               </ul>
             </div>
@@ -339,7 +339,7 @@ function LinkedInTab() {
     <div className="space-y-4">
       <div className="career-card">
         <div className="font-semibold">LinkedIn Analyzer</div>
-        <div className="text-sm text-white/65 mt-1">Score each section and get exact rewrites.</div>
+        <div className="text-sm text-[var(--career-muted)] mt-1">Score each section and get exact rewrites.</div>
         <div className="mt-4 grid grid-cols-1 gap-3">
           <input className="career-input" value={targetRole} onChange={(e) => setTargetRole(e.target.value)} placeholder="Target role (optional)" />
           <textarea className="career-input min-h-[160px]" value={profileText} onChange={(e) => setProfileText(e.target.value)} placeholder="Paste your LinkedIn text (headline/about/experience/skills)…" />
@@ -355,10 +355,10 @@ function LinkedInTab() {
         <div className="career-card">
           <div className="career-kicker">Score</div>
           <div className="font-display font-extrabold text-3xl mt-1">{analysis.overall_score}/100</div>
-          <div className="text-sm text-white/70 mt-2">Recruiter click probability: {analysis.recruiter_click_probability}%</div>
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="text-sm text-[var(--career-muted)] mt-2">Recruiter click probability: {analysis.recruiter_click_probability}%</div>
+          <div className="mt-4 rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
             <div className="font-semibold">Top priority actions</div>
-            <ul className="mt-2 text-sm text-white/70 space-y-2">
+            <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-2">
               {(analysis.priority_actions || []).slice(0, 6).map((a, idx) => (
                 <li key={idx}>
                   <span className="font-semibold text-white/85">{a.priority.toUpperCase()}</span> — {a.action} ({a.time_minutes} min)
@@ -424,7 +424,7 @@ function SalaryTab() {
     <div className="space-y-4">
       <div className="career-card">
         <div className="font-semibold">Salary Intelligence</div>
-        <div className="text-sm text-white/65 mt-1">Estimate your current vs projected package, plus negotiation help.</div>
+        <div className="text-sm text-[var(--career-muted)] mt-1">Estimate your current vs projected package, plus negotiation help.</div>
         <div className="mt-4 grid grid-cols-1 gap-3">
           <input className="career-input" value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role" />
           <input className="career-input" value={experience} onChange={(e) => setExperience(e.target.value)} placeholder="Experience e.g. Fresher" />
@@ -441,20 +441,20 @@ function SalaryTab() {
       {intel ? (
         <div className="career-card">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
               <div className="font-semibold">Current</div>
               <div className="text-2xl font-bold mt-1">₹{intel.current_range?.min} – ₹{intel.current_range?.max} LPA</div>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
               <div className="font-semibold">After roadmap</div>
               <div className="text-2xl font-bold mt-1">₹{intel.projected_range?.min} – ₹{intel.projected_range?.max} LPA</div>
-              <div className="text-sm text-white/70 mt-1">ROI: {intel.roi_percentage}%</div>
+              <div className="text-sm text-[var(--career-muted)] mt-1">ROI: {intel.roi_percentage}%</div>
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="mt-4 rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">
             <div className="font-semibold">Negotiation talking points</div>
-            <ul className="mt-2 text-sm text-white/70 space-y-1">
+            <ul className="mt-2 text-sm text-[var(--career-muted)] space-y-1">
               {(intel.negotiation_talking_points || []).slice(0, 6).map((t, idx) => <li key={idx}>- {t}</li>)}
             </ul>
           </div>
@@ -463,7 +463,7 @@ function SalaryTab() {
 
       <div className="career-card">
         <div className="font-semibold">Negotiation script</div>
-        <div className="text-sm text-white/65 mt-1">Generate a 3–4 paragraph script you can paste into email/HR call.</div>
+        <div className="text-sm text-[var(--career-muted)] mt-1">Generate a 3–4 paragraph script you can paste into email/HR call.</div>
         <div className="mt-4 grid grid-cols-1 gap-3">
           <input className="career-input" value={currentOffer} onChange={(e) => setCurrentOffer(e.target.value)} placeholder="Current offer (LPA) e.g. 6.5" />
           <input className="career-input" value={targetSalary} onChange={(e) => setTargetSalary(e.target.value)} placeholder="Target salary (LPA) e.g. 9" />
@@ -472,7 +472,7 @@ function SalaryTab() {
           <button className="career-btn" disabled={scriptLoading || !currentOffer || !targetSalary} onClick={genScript}>
             {scriptLoading ? 'Generating…' : 'Generate script'}
           </button>
-          {script ? <pre className="whitespace-pre-wrap text-sm text-white/80 rounded-xl border border-white/10 bg-white/[0.03] p-4">{script}</pre> : null}
+          {script ? <pre className="whitespace-pre-wrap text-sm text-[var(--career-text)] text-opacity-80 rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4">{script}</pre> : null}
         </div>
       </div>
     </div>
@@ -542,7 +542,7 @@ function ApplicationsTab() {
 
       <div className="career-card">
         <div className="font-semibold">Smart Application Tracker</div>
-        <div className="text-sm text-white/65 mt-1">Track applications and let AI detect rejection patterns.</div>
+        <div className="text-sm text-[var(--career-muted)] mt-1">Track applications and let AI detect rejection patterns.</div>
         <div className="mt-4 flex flex-wrap gap-2">
           <button className="career-btn" onClick={load} disabled={loading}>
             {loading ? 'Loading…' : 'Refresh'}
@@ -578,16 +578,16 @@ function ApplicationsTab() {
           <div className="font-semibold">Applications ({apps.length})</div>
           <div className="mt-3 space-y-2">
             {apps.slice(0, 12).map((a) => (
-              <div key={a.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex items-start justify-between gap-3">
+              <div key={a.id} className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-semibold truncate">{a.company} — {a.role}</div>
-                  <div className="text-xs text-white/60 mt-1">{a.status} · {a.date_applied} · {a.match_score}% match</div>
+                  <div className="text-xs text-[var(--career-muted)] mt-1">{a.status} · {a.date_applied} · {a.match_score}% match</div>
                 </div>
                 <button className="career-btn" onClick={() => del(a.id)}>Delete</button>
               </div>
             ))}
           </div>
-          {apps.length > 12 ? <div className="text-xs text-white/60 mt-3">Showing latest 12.</div> : null}
+          {apps.length > 12 ? <div className="text-xs text-[var(--career-muted)] mt-3">Showing latest 12.</div> : null}
         </div>
       ) : (
         <EmptyState title="No applications yet" desc="Add your first application to unlock rejection pattern analysis." />
@@ -596,8 +596,8 @@ function ApplicationsTab() {
       {analysis ? (
         <div className="career-card">
           <div className="font-semibold">Rejection pattern insights</div>
-          <div className="text-sm text-white/65 mt-1">{analysis.top_recommendation}</div>
-          <ul className="mt-3 text-sm text-white/70 space-y-2">
+          <div className="text-sm text-[var(--career-muted)] mt-1">{analysis.top_recommendation}</div>
+          <ul className="mt-3 text-sm text-[var(--career-muted)] space-y-2">
             {(analysis.patterns || []).slice(0, 6).map((p, idx) => (
               <li key={idx}>
                 <span className="font-semibold text-white/85">{p.pattern}</span> — {p.recommendation}
@@ -673,7 +673,7 @@ function CertificationsTab() {
     <div className="space-y-4">
       <div className="career-card">
         <div className="font-semibold">Certification Recommender</div>
-        <div className="text-sm text-white/65 mt-1">Get certifications ranked by ROI and track progress.</div>
+        <div className="text-sm text-[var(--career-muted)] mt-1">Get certifications ranked by ROI and track progress.</div>
         <div className="mt-4 grid grid-cols-1 gap-3">
           <input className="career-input" value={role} onChange={(e) => setRole(e.target.value)} placeholder="Role" />
           <input className="career-input" value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="Current skills (comma separated)" />
@@ -693,10 +693,10 @@ function CertificationsTab() {
           <div className="font-semibold">Top certifications</div>
           <div className="mt-3 space-y-2">
             {rec.certifications.slice(0, 5).map((c) => (
-              <div key={c.name} className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex items-start justify-between gap-3">
+              <div key={c.name} className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4 flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="font-semibold truncate">{c.name}</div>
-                  <div className="text-xs text-white/60 mt-1">{c.platform} · {c.duration} · {c.cost} · +₹{c.salary_impact_lpa} LPA</div>
+                  <div className="text-xs text-[var(--career-muted)] mt-1">{c.platform} · {c.duration} · {c.cost} · +₹{c.salary_impact_lpa} LPA</div>
                 </div>
                 <button className="career-btn" onClick={() => add(c)}>Track</button>
               </div>
@@ -714,13 +714,13 @@ function CertificationsTab() {
         </div>
         <div className="mt-3 space-y-2">
           {tracked.length ? tracked.slice(0, 10).map((t) => (
-            <div key={t.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-4 flex items-center justify-between gap-3">
+            <div key={t.id} className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4 flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="font-semibold truncate">{t.name}</div>
-                <div className="text-xs text-white/60 mt-1">{t.platform} · {t.status} · {t.completion_percent}%</div>
+                <div className="text-xs text-[var(--career-muted)] mt-1">{t.platform} · {t.status} · {t.completion_percent}%</div>
               </div>
             </div>
-          )) : <div className="text-sm text-white/60">No tracked certifications yet.</div>}
+          )) : <div className="text-sm text-[var(--career-muted)]">No tracked certifications yet.</div>}
         </div>
       </div>
     </div>
@@ -755,27 +755,27 @@ function ChatTab() {
     <div className="space-y-4">
       <div className="career-card">
         <div className="font-semibold">AI Career Advisor</div>
-        <div className="text-sm text-white/65 mt-1">Ask anything about roles, hiring, skills, interview prep.</div>
+        <div className="text-sm text-[var(--career-muted)] mt-1">Ask anything about roles, hiring, skills, interview prep.</div>
       </div>
 
       {error ? <ErrorState message={error} /> : null}
 
       <div className="career-card">
         <div className="space-y-3">
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 min-h-[240px]">
+          <div className="rounded-xl border border-[var(--career-border)] bg-[var(--career-surface)] p-4 min-h-[240px]">
             {messages.length ? (
               <div className="space-y-3">
                 {messages.slice(-10).map((m, idx) => (
                   <div key={idx} className={m.role === 'user' ? 'text-right' : 'text-left'}>
-                    <div className={`inline-block max-w-[85%] rounded-xl px-3 py-2 text-sm ${m.role === 'user' ? 'bg-white/10 border border-white/10' : 'bg-[#111118] border border-white/10'}`}>
+                    <div className={`inline-block max-w-[85%] rounded-xl px-3 py-2 text-sm ${m.role === 'user' ? 'bg-[var(--career-surface)] border border-[var(--career-border)] border border-[var(--career-border)]' : 'bg-[var(--career-surface)] border border-[var(--career-border)]'}`}>
                       <div className="whitespace-pre-wrap text-white/85">{m.content}</div>
                     </div>
                   </div>
                 ))}
-                {loading ? <div className="text-sm text-white/60">Thinking…</div> : null}
+                {loading ? <div className="text-sm text-[var(--career-muted)]">Thinking…</div> : null}
               </div>
             ) : (
-              <div className="text-sm text-white/60">Start by asking: “What should I learn first for {`{role}`}?”</div>
+              <div className="text-sm text-[var(--career-muted)]">Start by asking: “What should I learn first for {`{role}`}?”</div>
             )}
           </div>
           <div className="flex gap-2">
