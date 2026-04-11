@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="./docs/images/banner.png" alt="SAHAYA.AI Banner" width="100%" />
   
   # SAHAYA.AI — Intelligent Learning & Career System
   
@@ -18,8 +17,6 @@
 <br />
 
 ## 🌟 Prototype Gallery
-
-*(Add your high-resolution prototype screenshots to the `docs/images/` folder to make this gallery shine!)*
 
 | Dashboard | Study Planner |
 | :---: | :---: |
