@@ -107,6 +107,10 @@ router.post('/process', authMiddleware, upload.array('files', 10), async (req, r
     res.json({ document: doc });
   } catch (e) {
     console.error('study hub process', e);
+    
+    // Fallback: Safe error logging for ES Modules without breaking
+    import('fs').then(fs => fs.writeFileSync('study_process_error.log', e.stack || e.message)).catch(()=>null);
+    
     res.status(500).json({ error: e.message || 'Processing failed' });
   }
 });
