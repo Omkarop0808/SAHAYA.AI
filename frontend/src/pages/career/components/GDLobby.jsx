@@ -91,7 +91,7 @@ function GDLobbyInternal({ config, eduData, onEndGd }) {
         roomId={matchData.roomId}
         participants={matchData.participants}
         duration={config.duration}
-        topic={config.subject || 'General Tech'}
+        topic={matchData.actualTopic || config.subject || 'General Tech'}
         onEnd={onEndGd}
       />
     );

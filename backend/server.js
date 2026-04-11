@@ -118,7 +118,9 @@ io.on('connection', (socket) => {
     
     if (data.requestedSize > 1) {
        socket.broadcast.emit('gd_lobby_notification', {
-          message: `${data.name || 'Student'} is starting a ${data.requestedSize}-person GD on ${data.topic || 'General Tech'}. Join now!`
+          message: `${data.name || 'Student'} is starting a ${data.requestedSize}-person GD on ${data.topic || 'General Tech'}. Join now!`,
+          inviteTopic: data.topic,
+          inviteSize: data.requestedSize
        });
     }
 
@@ -140,8 +142,20 @@ io.on('connection', (socket) => {
            readyUsers: []
        };
 
+       // Generate a specific thought-provoking GD Topic for this room
+       const IT_TOPICS = [
+         "Will Artificial Intelligence replace Junior Software Engineers?", 
+         "Hybrid Work vs Full Return to Office in the Tech Industry", 
+         "Is a formal CS Degree still strictly necessary in 2026?", 
+         "The impact of Open Source on corporate software monopolies", 
+         "Ethics in AI: Who is responsible when AI makes a mistake?", 
+         "Agile vs Waterfall in modern hyper-growth startup culture", 
+         "Can Web3 actually solve real-world problems?"
+       ];
+       const actualTopic = IT_TOPICS[Math.floor(Math.random() * IT_TOPICS.length)];
+
        roomParticipants.forEach(p => {
-          io.to(p.socketId).emit('gd_match_found', { roomId, participants: roomParticipants });
+          io.to(p.socketId).emit('gd_match_found', { roomId, participants: roomParticipants, actualTopic });
        });
        io.emit('lobby_update', getWaitlist());
     }

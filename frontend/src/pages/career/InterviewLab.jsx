@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 import { 
@@ -127,8 +128,25 @@ async function loadFaceApi() {
    ═══════════════════════════════════════════════════════════════════ */
 export default function InterviewLab() {
   const { eduData } = useAuth();
+  const location = useLocation();
   const [phase, setPhase] = useState('setup');
   const [config, setConfig] = useState({ type: '', difficulty: 'Fresher', duration: 10, companyStyle: '', gdParticipants: 4 });
+
+  // Handle auto-join from global notification
+  useEffect(() => {
+    if (location.state?.autoJoinGD) {
+      setConfig(prev => ({
+        ...prev,
+        type: 'Group Discussion',
+        subject: location.state.gdTopic || 'General Tech',
+        gdParticipants: location.state.gdSize || 4
+      }));
+      setPhase('gd_multiplayer_lobby');
+      
+      // Clean up state so refresh doesn't auto-join again
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   /* interview state */
   const [sessionId, setSessionId] = useState(null);

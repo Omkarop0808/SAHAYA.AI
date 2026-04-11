@@ -264,8 +264,22 @@ export default function GDVideoRoom({ roomId, participants, duration, topic, onE
        
       <video ref={localVideoRef} autoPlay muted playsInline className="opacity-0 absolute pointer-events-none w-0 h-0" />
        
-      {/* We keep this mounted at all times securely */}
-      <div ref={containerRef} className="w-full h-full flex-grow bg-transparent relative z-0"></div>
+      {/* Explicitly bounded flex-1 container to ensure Zego controls are not pushed out of view */}
+      <div className="flex-1 w-full min-h-0 relative z-0 overflow-hidden bg-black rounded-b-xl">
+        <div ref={containerRef} className="w-full h-full absolute inset-0"></div>
+        
+        {/* Live Speech Captions Overlay */}
+        {transcript && (
+          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 w-full max-w-2xl px-4 pointer-events-none z-[99]">
+            <div className="bg-black bg-opacity-60 backdrop-blur-md border border-white/10 rounded-xl p-3 text-center shadow-2xl">
+              <p className="text-white text-base md:text-lg font-medium tracking-wide drop-shadow-md">
+                <span className="text-[var(--career-accent)] mr-2 font-bold opacity-80">You:</span>
+                {transcript}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
